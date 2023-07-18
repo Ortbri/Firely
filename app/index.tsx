@@ -2,7 +2,7 @@ import React from "react";
 import { Redirect } from "expo-router";
 
 const StartPage = () => {
-  return <Redirect href="/(auth)/login" />;
+  return <Redirect href="login" />;
 };
 
 export default StartPage;
