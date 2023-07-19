@@ -1,5 +1,7 @@
 // Create an auth conext using firebase on authchange with user object
 
+import { FIREBASE_AUTH } from "@/config/FirebaseConfig";
+import { User, onAuthStateChanged } from "firebase/auth";
 import React, { useState, useEffect, createContext } from "react";
 
 interface AuthProps {
@@ -8,6 +10,22 @@ interface AuthProps {
 }
 export const AuthContext = createContext<AuthProps>({});
 export const AuthProvider = ({ children }: any) => {
-  const value = {};
+  const [user, setUser] = useState<User>();
+  const [initialized, setinitialized] = useState<boolean>(false);
+
+  useEffect(() => {
+    console.log("AuthProvider");
+
+    onAuthStateChanged(FIREBASE_AUTH, (user) => {
+      console.log("Authenticated: ", user && user.email);
+      setUser(user);
+      setinitialized(true);
+    });
+  }, []);
+
+  const value = {
+    user,
+    initialized,
+  };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

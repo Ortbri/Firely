@@ -2,11 +2,33 @@ import React from "react";
 import { Stack } from "expo-router";
 
 const StackLayout = () => {
-  return <Stack />;
+  return (
+    <Stack>
+      <Stack.Screen
+        name="index"
+        options={{
+          headerShown: false,
+        }}
+      ></Stack.Screen>
+
+      <Stack.Screen
+        name="(auth)"
+        options={{
+          headerShown: false,
+        }}
+      ></Stack.Screen>
+
+      <Stack.Screen
+        name="(tabs)"
+        options={{
+          headerShown: false,
+        }}
+      ></Stack.Screen>
+    </Stack>
+  );
 };
 
 export default StackLayout;
-
 // import FontAwesome from '@expo/vector-icons/FontAwesome';
 // import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 // import { useFonts } from 'expo-font';
