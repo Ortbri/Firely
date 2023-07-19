@@ -13,7 +13,7 @@ import {
 import { FIREBASE_AUTH, FIRESTORE_DB } from "../../config/FirebaseConfig";
 import { addDoc, collection, doc, setDoc } from "firebase/firestore";
 
-const Register = ({ navigation }) => {
+const Register = ({}) => {
   const [username, setUsername] = useState("GalacticHero");
   const [email, setEmail] = useState("simon@galaxies.dev");
   const [password, setPassword] = useState("123456");

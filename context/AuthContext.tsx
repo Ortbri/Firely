@@ -5,12 +5,14 @@ import { User, onAuthStateChanged } from "firebase/auth";
 import React, { useState, useEffect, createContext } from "react";
 
 interface AuthProps {
-  user?: any;
+  user?: User | null;
   initialized: boolean;
 }
-export const AuthContext = createContext<AuthProps>({});
+export const AuthContext = createContext<AuthProps>({
+  initialized: false,
+});
 export const AuthProvider = ({ children }: any) => {
-  const [user, setUser] = useState<User>();
+  const [user, setUser] = useState<User | null>();
   const [initialized, setinitialized] = useState<boolean>(false);
 
   useEffect(() => {

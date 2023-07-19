@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { FIREBASE_AUTH } from "../../config/FirebaseConfig";
 
-const Login = ({ navigation }) => {
+const Login = ({}) => {
   const [email, setEmail] = useState("simon@galaxies.dev");
   const [password, setPassword] = useState("123456");
   const [loading, setLoading] = useState(false);

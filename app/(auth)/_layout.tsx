@@ -14,6 +14,8 @@ const AuthStack = () => {
           // headerTransparent: true,
           title: "Create Account",
           headerBackTitle: "Login",
+          headerTransparent: true,
+          headerTintColor: "black",
         }}
       />
     </Stack>
