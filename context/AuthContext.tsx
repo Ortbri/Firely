@@ -8,6 +8,7 @@ import React, {
   createContext,
   PropsWithChildren,
 } from "react";
+import { useSegments, useRouter } from "expo-router";
 
 interface AuthProps {
   user?: User | null;
@@ -21,23 +22,37 @@ export function useAuth() {
   return React.useContext(AuthContext);
 }
 
-export const AuthProvider = ({ children }: any) => {
+export const AuthProvider = ({ children }: PropsWithChildren) => {
   const [user, setUser] = useState<User | null>();
-  const [initialized, setinitialized] = useState<boolean>(false);
+  const [initialized, setInitialized] = useState<boolean>(false);
+  const router = useRouter();
+  const segments = useSegments();
 
   useEffect(() => {
-    console.log("AuthProvider");
-
     onAuthStateChanged(FIREBASE_AUTH, (user) => {
-      console.log("Authenticated: ", user && user.email);
       setUser(user);
-      setinitialized(true);
+      setInitialized(true);
     });
   }, []);
+
+  const useProtectedRoute = () => {
+    useEffect(() => {
+      const inTabsGroup = segments[0] === "(tabs)";
+
+      if (!user && inTabsGroup) {
+        router.replace("/(auth)/login");
+      } else if (user && !inTabsGroup) {
+        router.replace("/(tabs)/groups");
+      }
+    }, [user, segments]);
+  };
+
+  useProtectedRoute();
 
   const value = {
     user,
     initialized,
   };
+
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

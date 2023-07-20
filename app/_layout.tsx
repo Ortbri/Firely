@@ -1,34 +1,18 @@
-import React from "react";
-import { Stack } from "expo-router";
+import { Slot, useRouter, useSegments } from "expo-router";
+import { AuthContext, AuthProvider } from "@/context/AuthContext";
+import React, { useContext, useEffect } from "react";
+import { View, Text, StyleSheet } from "react-native";
 
-const StackLayout = () => {
+const RootLayout = () => {
   return (
-    <Stack>
-      <Stack.Screen
-        name="index"
-        options={{
-          headerShown: false,
-        }}
-      ></Stack.Screen>
-
-      <Stack.Screen
-        name="(auth)"
-        options={{
-          headerShown: false,
-        }}
-      ></Stack.Screen>
-
-      <Stack.Screen
-        name="(tabs)"
-        options={{
-          headerShown: false,
-        }}
-      ></Stack.Screen>
-    </Stack>
+    <AuthProvider>
+      <Slot />
+    </AuthProvider>
   );
 };
 
-export default StackLayout;
+export default RootLayout;
+
 // import FontAwesome from '@expo/vector-icons/FontAwesome';
 // import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 // import { useFonts } from 'expo-font';
