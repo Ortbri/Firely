@@ -1,12 +1,12 @@
 import { View, Text } from "react-native";
 import React from "react";
 
-const groups = () => {
+const Setting = () => {
   return (
     <View>
-      <Text>groups</Text>
+      <Text>Setting</Text>
     </View>
   );
 };
 
-export default groups;
+export default Setting;

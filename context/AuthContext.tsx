@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       if (!user && inTabsGroup) {
         router.replace("/(auth)/login");
       } else if (user && !inTabsGroup) {
-        router.replace("/(tabs)/groups");
+        router.replace("/(tabs)/(groups)");
       }
     }, [user, segments]);
   };

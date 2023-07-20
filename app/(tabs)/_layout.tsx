@@ -4,6 +4,7 @@ import { Button } from "react-native";
 import { signOut } from "firebase/auth";
 import { FIREBASE_AUTH } from "@/config/FirebaseConfig";
 import { useAuth } from "@/context/AuthContext";
+import { Ionicons } from "@expo/vector-icons";
 
 const TabsPage = () => {
   const { user, initialized } = useAuth();
@@ -16,11 +17,12 @@ const TabsPage = () => {
     <Tabs>
       <Tabs.Screen
         redirect={!user}
-        name="groups"
+        name="(groups)"
         options={{
-          headerTitle: "Chat Groups",
-          headerRight: () => (
-            <Button onPress={doLogout} title="Logout"></Button>
+          headerShown: false,
+          title: "Message",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="ios-chatbubbles" color={color} size={size} />
           ),
         }}
       />
@@ -28,9 +30,10 @@ const TabsPage = () => {
         redirect={!user}
         name="profile"
         options={{
-          headerTitle: "Profile",
-          headerRight: () => (
-            <Button onPress={doLogout} title="Logout"></Button>
+          headerShown: false,
+          title: "Profile",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person" color={color} size={size} />
           ),
         }}
       />
