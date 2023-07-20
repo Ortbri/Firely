@@ -2,7 +2,12 @@
 
 import { FIREBASE_AUTH } from "@/config/FirebaseConfig";
 import { User, onAuthStateChanged } from "firebase/auth";
-import React, { useState, useEffect, createContext } from "react";
+import React, {
+  useState,
+  useEffect,
+  createContext,
+  PropsWithChildren,
+} from "react";
 
 interface AuthProps {
   user?: User | null;
@@ -11,6 +16,11 @@ interface AuthProps {
 export const AuthContext = createContext<AuthProps>({
   initialized: false,
 });
+
+export function useAuth() {
+  return React.useContext(AuthContext);
+}
+
 export const AuthProvider = ({ children }: any) => {
   const [user, setUser] = useState<User | null>();
   const [initialized, setinitialized] = useState<boolean>(false);

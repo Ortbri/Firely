@@ -11,6 +11,7 @@ import {
   Text,
 } from "react-native";
 import { FIREBASE_AUTH } from "../../config/FirebaseConfig";
+import Spinner from "react-native-loading-spinner-overlay";
 
 const Login = ({}) => {
   const [email, setEmail] = useState("simon@galaxies.dev");
@@ -35,6 +36,7 @@ const Login = ({}) => {
 
   return (
     <View style={styles.container}>
+      <Spinner visible={loading} />
       <Image
         style={styles.logo}
         source={{ uri: "https://galaxies.dev/img/lockup.webp" }} // replace with your own image URL
