@@ -17,6 +17,17 @@ const TabsPage = () => {
     <Tabs>
       <Tabs.Screen
         redirect={!user}
+        name="home"
+        options={{
+          headerShown: false,
+          title: "Home Page",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        redirect={!user}
         name="(groups)"
         options={{
           headerShown: false,

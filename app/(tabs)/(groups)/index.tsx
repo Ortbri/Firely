@@ -21,7 +21,10 @@ import { ScrollView } from "react-native-gesture-handler";
 
 const GroupsPage = () => {
   const [groupCollectionRef, setGroupsCollectionRef] = React.useState(null);
-  const [groups, setGroups] = React.useState([]);
+
+  const [groups, setGroups] = React.useState<
+    { id: string; name: string; description: string }[]
+  >([]);
   const { user } = useAuth();
   useEffect(() => {
     const ref = collection(FIRESTORE_DB, "groups");
@@ -29,12 +32,14 @@ const GroupsPage = () => {
 
     const unsubscribe = onSnapshot(ref, (groups: DocumentData) => {
       console.log("current data", groups);
-      const groupsdata = groups.docs.map((doc) => {
-        return {
-          id: doc.id,
-          ...doc.data(),
-        };
-      });
+      const groupsdata = groups.docs.map(
+        (doc: { id: any; data: () => any }) => {
+          return {
+            id: doc.id,
+            ...doc.data(),
+          };
+        }
+      );
       console.log(groupsdata);
 
       setGroups(groupsdata);
@@ -48,7 +53,7 @@ const GroupsPage = () => {
       await addDoc(groupCollectionRef, {
         name: `Group #${Math.floor(Math.random() * 1000)}`,
         description: "This is a chat room",
-        creator: user.uid,
+        creator: user?.uid,
       });
     } catch (error) {
       console.log("Error");
