@@ -41,7 +41,9 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 
       if (!user && inTabsGroup) {
         router.replace("/(auth)/login");
+        console.log("NOT AUTHENTICATED: ");
       } else if (user && !inTabsGroup) {
+        console.log("AUTHENTICATED: ", user);
         router.replace("/(tabs)/home");
       }
     }, [user, segments]);

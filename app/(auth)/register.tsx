@@ -10,40 +10,26 @@ import {
   Button,
   ActivityIndicator,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { FIREBASE_AUTH, FIRESTORE_DB } from "../../config/FirebaseConfig";
 import { addDoc, collection, doc, setDoc } from "firebase/firestore";
 
 const Register = ({}) => {
-  const [username, setUsername] = useState("GalacticHero");
-  const [email, setEmail] = useState("simon@galaxies.dev");
+  const [username, setUsername] = useState("Orbit");
+  const [email, setEmail] = useState("Brian.ort02@gmail.com");
   const [password, setPassword] = useState("123456");
   const [loading, setLoading] = useState(false);
 
+  const router = useRouter();
   const handleRegistration = async () => {
-    try {
-      setLoading(true);
-      const user = await createUserWithEmailAndPassword(
-        FIREBASE_AUTH,
-        email,
-        password
-      );
-      createUserInformation(user);
-    } catch (error) {
-      console.error("There was an error logging in:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createUserInformation = async (user: UserCredential) => {
-    try {
-      const docRef = await setDoc(doc(FIRESTORE_DB, `users/${user.user.uid}`), {
-        username,
-        email: user.user.email,
-      });
-    } catch (error) {
-      console.error("There was an error creating user information:", error);
-    }
+    router.push({
+      pathname: "/(auth)/name",
+      params: {
+        username: username,
+        email: email,
+        password: password,
+      },
+    });
   };
 
   return (
@@ -72,10 +58,7 @@ const Register = ({}) => {
       {loading ? (
         <ActivityIndicator />
       ) : (
-        <Button
-          onPress={handleRegistration}
-          title="Create free account"
-        ></Button>
+        <Button onPress={handleRegistration} title="Continue..."></Button>
       )}
     </View>
   );

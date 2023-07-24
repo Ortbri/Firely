@@ -18,6 +18,24 @@ const AuthStack = () => {
           headerTintColor: "black",
         }}
       />
+      <Stack.Screen
+        name="name"
+        options={{
+          headerTransparent: true,
+          title: "Name",
+          headerBackTitle: "Register",
+          headerTintColor: "black",
+        }}
+      />
+      <Stack.Screen
+        name="dob"
+        options={{
+          headerTransparent: true,
+          title: "Date of Birth",
+          headerBackTitle: "Name",
+          headerTintColor: "black",
+        }}
+      />
     </Stack>
   );
 };

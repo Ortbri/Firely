@@ -31,7 +31,10 @@ const GroupsPage = () => {
     setGroupsCollectionRef(ref);
 
     const unsubscribe = onSnapshot(ref, (groups: DocumentData) => {
-      console.log("current data", groups);
+      console.log(
+        "current data"
+        // groups
+      );
       const groupsdata = groups.docs.map(
         (doc: { id: any; data: () => any }) => {
           return {
@@ -40,7 +43,7 @@ const GroupsPage = () => {
           };
         }
       );
-      console.log(groupsdata);
+      // console.log(groupsdata);
 
       setGroups(groupsdata);
     });

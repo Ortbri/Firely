@@ -39,7 +39,9 @@ const Login = ({}) => {
       <Spinner visible={loading} />
       <Image
         style={styles.logo}
-        source={{ uri: "https://galaxies.dev/img/lockup.webp" }} // replace with your own image URL
+        source={{
+          uri: "https://images.squarespace-cdn.com/content/v1/633cc37e9f892b0dd57c2dbd/0c3536c6-f8e6-454b-9368-7e612c09dc92/icon+onlyCL+.png",
+        }} // replace with your own image URL
       />
       <TextInput
         placeholder="simon@galaxies.dev"
@@ -70,10 +72,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     padding: 20,
+    backgroundColor: "#F5FCFF",
   },
   logo: {
     width: 100,
-    height: 100,
+    height: 77,
     alignSelf: "center",
     marginBottom: 20,
   },
@@ -82,7 +85,7 @@ const styles = StyleSheet.create({
     height: 50,
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 4,
+    borderRadius: 12,
     padding: 10,
     backgroundColor: "#fff",
   },
