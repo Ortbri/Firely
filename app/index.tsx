@@ -9,7 +9,12 @@ export default function Page() {
   const { user } = useAuth();
 
   if (!user) {
+    console.log("redirecting to login");
     return <Redirect href="/login" />;
+  } else if (user) {
+    // it doenst use this redirect i use it as a safety redirect
+    console.log("redirect to home");
+    return <Redirect href="/(tabs)/home" />;
   }
 
   return (

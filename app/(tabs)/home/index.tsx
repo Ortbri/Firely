@@ -58,6 +58,7 @@ const HomePage = () => {
 
   return (
     <View style={styles.container}>
+      {/* add handle refresh and other.... */}
       <JobPostList jobPosts={jobPosts} />
       <Text>Home page stuff</Text>
       <Pressable onPress={createJob} style={styles.fab}>
