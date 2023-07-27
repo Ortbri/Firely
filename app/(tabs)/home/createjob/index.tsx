@@ -19,12 +19,12 @@ interface ImageObject {
   uri: string;
   id: string;
 }
-interface Params {
-  jobTitle: string;
-  description: string;
-  location: string;
-  imageUri: ImageObject[];
-}
+// interface Params {
+//   jobTitle: string;
+//   description: string;
+//   location: string;
+//   imageUri: ImageObject[];
+// }
 
 const CreateJob = () => {
   const [jobTitle, setJobTitle] = useState("a");
@@ -37,36 +37,40 @@ const CreateJob = () => {
   const nextpage = () => {
     router.push({
       pathname: "/(tabs)/home/createjob/123",
-      params: { jobTitle, description, location, imageUri: images },
+      params: {
+        jobTitle,
+        description,
+        location,
+        imageUri: images.length > 0 ? images[0].uri : null,
+      },
     });
   };
   console.log("not passed over: ", jobTitle, description, location, images);
 
   const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
+    try {
+      const { canceled, assets } = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        // allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+        allowsMultipleSelection: true,
+      });
 
-      allowsMultipleSelection: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    console.log(result);
-    if (!result.canceled && result.assets.length > 0) {
-      // Map the selected assets to objects containing uri and id
-      const selectedImages = result.assets.map((asset, index) => ({
-        uri: asset.uri,
-        id: index.toString(), // Use the index as the id for simplicity
-      })) as ImageObject[];
-      setImages((prevImages: ImageObject[]) => [
-        ...prevImages,
-        ...selectedImages,
-      ]);
+      if (!canceled && assets.length > 0) {
+        const selectedImages = assets.map((asset, index) => ({
+          uri: asset.uri,
+          id: index.toString(),
+        })) as ImageObject[];
+        setImages((prevImages) => [...prevImages, ...selectedImages]);
+      }
+    } catch (error) {
+      console.error("Error picking image: ", error);
     }
   };
+  console.log("images: ", images);
   return (
     <View style={styles.container}>
-      {/* <Text style={styles.heading}>Create Job</Text> */}
       <ScrollView horizontal>
         {images.map((image) => (
           <Image

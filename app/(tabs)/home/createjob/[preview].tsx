@@ -1,31 +1,21 @@
 import { View, Text, ScrollView, StyleSheet } from "react-native";
 import React from "react";
+import { Image } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { Image } from "expo-image";
+// import { Image } from "expo-image";
 
 const Preview = () => {
-  const { jobTitle, description, location, images } = useLocalSearchParams();
+  const { jobTitle, description, location, imageUri } = useLocalSearchParams();
 
-  console.log("passed over: ", jobTitle, description, location, images);
+  console.log("passed over: ", jobTitle, description, location, imageUri);
 
   return (
     <View>
-      {/* try expo image */}
-      {/* <Image
+      <Image
         source={{ uri: imageUri }}
         style={{ width: "100%", height: 250 }}
-      /> */}
-      {/* <ScrollView horizontal>
-        {images.map(
-          (image: { uri: any }, index: React.Key | null | undefined) => (
-            <Image
-              key={index}
-              source={{ uri: image.uri }}
-              style={styles.image}
-            />
-          )
-        )}
-      </ScrollView> */}
+      />
+
       <Text style={{ fontSize: 24, fontWeight: "bold", alignSelf: "center" }}>
         Preview
       </Text>
