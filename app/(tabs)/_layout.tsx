@@ -39,6 +39,17 @@ const TabsPage = () => {
       />
       <Tabs.Screen
         redirect={!user}
+        name="map"
+        options={{
+          headerShown: false,
+          title: "Map",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="map" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        redirect={!user}
         name="profile"
         options={{
           headerShown: false,

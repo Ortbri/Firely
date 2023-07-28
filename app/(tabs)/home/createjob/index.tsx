@@ -7,6 +7,7 @@ import {
   Platform,
   Image,
   ScrollView,
+  FlatList,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
@@ -14,6 +15,7 @@ import { collection, addDoc } from "firebase/firestore";
 import { FIRESTORE_DB } from "@/config/FirebaseConfig";
 import { getAuth } from "firebase/auth";
 import * as ImagePicker from "expo-image-picker";
+import { useNavigation } from "@react-navigation/native";
 
 interface ImageObject {
   uri: string;
@@ -35,15 +37,20 @@ const CreateJob = () => {
   const router = useRouter();
 
   const nextpage = () => {
+    // const imageUris = images.map((image) => image.uri);
+    // const imageUris = images.map((image) => image.uri);
     router.push({
       pathname: "/(tabs)/home/createjob/123",
       params: {
         jobTitle,
         description,
         location,
+        // imageUris: images.length > 0 ? imageUris : imageUris[0],
         imageUri: images.length > 0 ? images[0].uri : null,
+        // imageUri: images.length > 1 ? imageUris : imageUris[0],
       },
     });
+    console.log("passing params images imageURIS");
   };
   console.log("not passed over: ", jobTitle, description, location, images);
 
@@ -53,7 +60,7 @@ const CreateJob = () => {
         mediaTypes: ImagePicker.MediaTypeOptions.All,
         // allowsEditing: true,
         aspect: [4, 3],
-        quality: 1,
+        // quality: 1,
         allowsMultipleSelection: true,
       });
 
@@ -71,7 +78,7 @@ const CreateJob = () => {
   console.log("images: ", images);
   return (
     <View style={styles.container}>
-      <ScrollView horizontal>
+      {/* <ScrollView horizontal>
         {images.map((image) => (
           <Image
             key={image.id}
@@ -79,7 +86,7 @@ const CreateJob = () => {
             style={styles.image}
           />
         ))}
-      </ScrollView>
+      </ScrollView> */}
       <TextInput
         placeholder="Job Title"
         value={jobTitle}
