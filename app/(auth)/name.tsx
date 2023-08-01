@@ -23,8 +23,6 @@ const Name = () => {
           borderColor: "#ccc",
           borderWidth: 0.3,
           height: 40,
-          //   width: 200,
-          //   flex: 1,
           padding: 12,
           margin: 12,
         }}

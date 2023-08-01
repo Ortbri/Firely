@@ -32,6 +32,12 @@ const ProfileStack = () => {
           ),
         }}
       />
+      <Stack.Screen
+        name="payment"
+        options={{
+          headerTitle: "Payment",
+        }}
+      />
     </Stack>
   );
 };

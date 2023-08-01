@@ -38,36 +38,55 @@ const CreateJob = () => {
 
   const nextpage = () => {
     // const imageUris = images.map((image) => image.uri);
-    // const imageUris = images.map((image) => image.uri);
+    const imageUris = images.map((image) => image.uri);
+    const imagesJSON = JSON.stringify(images);
     router.push({
       pathname: "/(tabs)/home/createjob/123",
       params: {
         jobTitle,
         description,
         location,
-        // imageUris: images.length > 0 ? imageUris : imageUris[0],
-        imageUri: images.length > 0 ? images[0].uri : null,
+        // images: images.map((image) => image.uri),
+        // images: imageUris,
+        imagesJSON,
+        // images,
+        // imageUri: images.length > 0 ? images[0].uri : null,
         // imageUri: images.length > 1 ? imageUris : imageUris[0],
       },
     });
     console.log("passing params images imageURIS");
   };
   console.log("not passed over: ", jobTitle, description, location, images);
-
+  useEffect(() => {
+    (async () => {
+      if (Platform.OS !== "ios") {
+        const { status } =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== "granted") {
+          // eslint-disable-next-line no-alert
+          alert("Sorry, we need camera roll permissions to make this work!");
+        }
+      }
+    })();
+  }, []);
   const pickImage = async () => {
     try {
       const { canceled, assets } = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         // allowsEditing: true,
         aspect: [4, 3],
-        // quality: 1,
+        selectionLimit: 3,
+        orderedSelection: true,
+        quality: 1,
         allowsMultipleSelection: true,
+        base64: true, // Add this option to get the base64 data for the images
       });
 
       if (!canceled && assets.length > 0) {
         const selectedImages = assets.map((asset, index) => ({
           uri: asset.uri,
           id: index.toString(),
+          base64: asset.base64, // Include the base64 data in the image object
         })) as ImageObject[];
         setImages((prevImages) => [...prevImages, ...selectedImages]);
       }
@@ -75,10 +94,34 @@ const CreateJob = () => {
       console.error("Error picking image: ", error);
     }
   };
+
+  // const pickImage = async () => {
+  //   try {
+  //     const { canceled, assets } = await ImagePicker.launchImageLibraryAsync({
+  //       mediaTypes: ImagePicker.MediaTypeOptions.Images,
+  //       // allowsEditing: true,
+  //       aspect: [4, 3],
+  //       selectionLimit: 3,
+  //       orderedSelection: true,
+  //       quality: 1,
+  //       allowsMultipleSelection: true,
+  //     });
+
+  //     if (!canceled && assets.length > 0) {
+  //       const selectedImages = assets.map((asset, index) => ({
+  //         uri: asset.uri,
+  //         id: index.toString(),
+  //       })) as ImageObject[];
+  //       setImages((prevImages) => [...prevImages, ...selectedImages]);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error picking image: ", error);
+  //   }
+  // };
   console.log("images: ", images);
   return (
     <View style={styles.container}>
-      {/* <ScrollView horizontal>
+      <ScrollView horizontal contentContainerStyle={{}}>
         {images.map((image) => (
           <Image
             key={image.id}
@@ -86,7 +129,7 @@ const CreateJob = () => {
             style={styles.image}
           />
         ))}
-      </ScrollView> */}
+      </ScrollView>
       <TextInput
         placeholder="Job Title"
         value={jobTitle}

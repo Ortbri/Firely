@@ -2,12 +2,19 @@ import { Slot, useRouter, useSegments } from "expo-router";
 import { AuthContext, AuthProvider } from "@/context/AuthContext";
 import React, { useContext, useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { StripeProvider } from "@stripe/stripe-react-native";
 
 const RootLayout = () => {
   return (
-    <AuthProvider>
-      <Slot />
-    </AuthProvider>
+    <StripeProvider
+      publishableKey="pk_test_51LfqbDIM1aKfC7VYU3d6X8rnm6TkZoUEWaXMwB2kKUCubeDya7bdhr8Mf9bU89xEO8ZJYOt7zntkSbTw0zf40fY300mREFabrb"
+      // urlScheme="your-url-scheme" // required for 3D Secure and bank redirects
+      // merchantIdentifier="merchant.com.{{YOUR_APP_NAME}}" // required for apple
+    >
+      <AuthProvider>
+        <Slot />
+      </AuthProvider>
+    </StripeProvider>
   );
 };
 

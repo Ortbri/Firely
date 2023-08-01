@@ -5,22 +5,31 @@ import { useLocalSearchParams } from "expo-router";
 // import { Image } from "expo-image";
 
 const Preview = () => {
-  const { jobTitle, description, location, imageUri } = useLocalSearchParams();
+  const { jobTitle, description, location, imagesJSON } =
+    useLocalSearchParams();
+  console.log("passed over: ", jobTitle, description, location, imagesJSON);
 
-  console.log("passed over: ", jobTitle, description, location);
-
+  const images = JSON.parse(imagesJSON);
   const renderItem = ({ item }) => {
-    return <Image source={{ uri: item }} style={styles.image} />;
+    return (
+      <Image
+        source={{ uri: `data:image/jpeg;base64,${item.base64}` }}
+        style={styles.image}
+      />
+    );
   };
 
   return (
     <View>
       {/* RENDERING 1 IMAGE ONLY */}
-      <Image
+      {/* <Image
         source={{ uri: imageUri }}
         style={{ width: "100%", height: 250 }}
-      />
+      /> */}
       {/* RENDERING 1 IMAGE ONLY */}
+      {/* RENDERING more than 1 IMAGE ONLY */}
+
+      {/* RENDERING more than 1 IMAGE ONLY */}
 
       <Text style={{ fontSize: 24, fontWeight: "bold", alignSelf: "center" }}>
         Preview
@@ -34,12 +43,12 @@ const Preview = () => {
       <Text style={{ fontSize: 16, fontWeight: "400", alignSelf: "center" }}>
         Location: {location}
       </Text>
-      {/* <FlatList
-        data={Array.isArray(imageUris) ? imageUris : [imageUris]}
+      <FlatList
+        data={images}
         renderItem={renderItem}
-        keyExtractor={(item) => item}
+        keyExtractor={(item) => item.id}
         horizontal // Set this to true if you want the images to be horizontally scrollable
-      /> */}
+      />
     </View>
   );
 };
