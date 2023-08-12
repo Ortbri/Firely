@@ -54,9 +54,8 @@ const CreateJob = () => {
         // imageUri: images.length > 1 ? imageUris : imageUris[0],
       },
     });
-    console.log("passing params images imageURIS");
   };
-  console.log("not passed over: ", jobTitle, description, location, images);
+  console.log("not passed over: ", jobTitle, description, location);
   useEffect(() => {
     (async () => {
       if (Platform.OS !== "ios") {
@@ -118,7 +117,7 @@ const CreateJob = () => {
   //     console.error("Error picking image: ", error);
   //   }
   // };
-  console.log("images: ", images);
+  // console.log("images: ", images);
   return (
     <View style={styles.container}>
       <ScrollView horizontal contentContainerStyle={{}}>

@@ -7,7 +7,7 @@ import { useLocalSearchParams } from "expo-router";
 const Preview = () => {
   const { jobTitle, description, location, imagesJSON } =
     useLocalSearchParams();
-  console.log("passed over: ", jobTitle, description, location, imagesJSON);
+  console.log("passed over: ", jobTitle, description, location);
 
   const images = JSON.parse(imagesJSON);
   const renderItem = ({ item }) => {
