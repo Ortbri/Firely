@@ -26,41 +26,41 @@ const GroupsPage = () => {
     { id: string; name: string; description: string }[]
   >([]);
   const { user } = useAuth();
-  useEffect(() => {
-    const ref = collection(FIRESTORE_DB, "groups");
-    setGroupsCollectionRef(ref);
+  // useEffect(() => {
+  //   const ref = collection(FIRESTORE_DB, "groups");
+  //   setGroupsCollectionRef(ref);
 
-    const unsubscribe = onSnapshot(ref, (groups: DocumentData) => {
-      console.log(
-        "current data"
-        // groups
-      );
-      const groupsdata = groups.docs.map(
-        (doc: { id: any; data: () => any }) => {
-          return {
-            id: doc.id,
-            ...doc.data(),
-          };
-        }
-      );
-      // console.log(groupsdata);
+  //   const unsubscribe = onSnapshot(ref, (groups: DocumentData) => {
+  //     console.log(
+  //       "current data"
+  //       // groups
+  //     );
+  //     const groupsdata = groups.docs.map(
+  //       (doc: { id: any; data: () => any }) => {
+  //         return {
+  //           id: doc.id,
+  //           ...doc.data(),
+  //         };
+  //       }
+  //     );
+  //     // console.log(groupsdata);
 
-      setGroups(groupsdata);
-    });
-    return unsubscribe;
-  }, []);
+  //     setGroups(groupsdata);
+  //   });
+  //   return unsubscribe;
+  // }, []);
 
   const startGroup = async () => {
     console.log("StartGroup");
-    try {
-      await addDoc(groupCollectionRef, {
-        name: `Group #${Math.floor(Math.random() * 1000)}`,
-        description: "This is a chat room",
-        creator: user?.uid,
-      });
-    } catch (error) {
-      console.log("Error");
-    }
+    // try {
+    //   await addDoc(groupCollectionRef, {
+    //     name: `Group #${Math.floor(Math.random() * 1000)}`,
+    //     description: "This is a chat room",
+    //     creator: user?.uid,
+    //   });
+    // } catch (error) {
+    //   console.log("Error");
+    // }
   };
 
   const router = useRouter();
@@ -70,8 +70,8 @@ const GroupsPage = () => {
   // };
   return (
     <View style={styles.container}>
-      <ScrollView>
-        {groups.map((group) => {
+      {/* <ScrollView> */}
+      {/* {groups.map((group) => {
           return (
             <Link key={group.id} href={`/(groups)/${group.id}`} asChild>
               <TouchableOpacity style={styles.groupCard}>
@@ -93,8 +93,8 @@ const GroupsPage = () => {
             //   </View>
             // </Pressable>
           );
-        })}
-      </ScrollView>
+        })} */}
+      {/* </ScrollView> */}
 
       <Pressable onPress={startGroup} style={styles.fab}>
         <Text style={{ color: "white", fontSize: 24 }}>+</Text>

@@ -30,13 +30,23 @@ const Dob = () => {
 
   const createUserInformation = async (user: UserCredential) => {
     try {
-      const docRef = await setDoc(doc(FIRESTORE_DB, `users/${user.user.uid}`), {
+      await setDoc(doc(FIRESTORE_DB, `users/${user.user.uid}`), {
         email: user.user.email,
         username,
         firstName,
       });
+
+      console.log(
+        "User information document created successfully for user:",
+        user.user.uid
+      );
     } catch (error) {
-      console.error("There was an error creating user information:", error);
+      console.error("Error creating user information:", error);
+      // Log additional information for debugging purposes
+      console.log("User UID:", user.user.uid);
+      console.log("Email:", user.user.email);
+      console.log("Username:", username);
+      console.log("FirstName:", firstName);
     }
   };
 

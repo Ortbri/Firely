@@ -95,23 +95,23 @@ const Map = () => {
   const { user } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    const ref = collection(FIRESTORE_DB, "locations");
-    const unsubscribe = onSnapshot(ref, (locations: DocumentData) => {
-      console.log("current data", locations);
-      const locationsData = locations.docs.map(
-        (doc: { id: any; data: () => any }) => {
-          return {
-            id: doc.id,
-            ...doc.data(),
-          };
-        }
-      );
+  // useEffect(() => {
+  //   const ref = collection(FIRESTORE_DB, "locations");
+  //   const unsubscribe = onSnapshot(ref, (locations: DocumentData) => {
+  //     console.log("current data", locations);
+  //     const locationsData = locations.docs.map(
+  //       (doc: { id: any; data: () => any }) => {
+  //         return {
+  //           id: doc.id,
+  //           ...doc.data(),
+  //         };
+  //       }
+  //     );
 
-      setLocations(locationsData);
-    });
-    return unsubscribe;
-  }, []);
+  //     setLocations(locationsData);
+  //   });
+  //   return unsubscribe;
+  // }, []);
   const addLocationToFirebase = async (locationData: {
     name: string;
     latitude: number;
@@ -173,7 +173,7 @@ const Map = () => {
               }}
               region={mapRegion}
             >
-              {enteredLocation && ( // Show the entered location if available
+              {/* {enteredLocation && ( // Show the entered location if available
                 <Circle
                   center={{
                     latitude: enteredLocation.latitude,
@@ -184,7 +184,7 @@ const Map = () => {
                   strokeWidth={2}
                   fillColor="rgba(0, 255, 0, 0.2)" // You can customize the fill color for the entered location
                 />
-              )}
+              )} */}
             </MapView>
           </View>
           {/* Your UI elements here */}
@@ -234,7 +234,7 @@ const Map = () => {
           {/* You can customize this FlatList to show the location details */}
           {/* For example, each item could be a TouchableOpacity to navigate to the location details screen */}
           {/* Replace "handleViewLocation" with the function to navigate to the location details screen */}
-          {locations.map((location) => (
+          {/* {locations.map((location) => (
             <TouchableOpacity
               style={{
                 borderWidth: 1,
@@ -248,7 +248,7 @@ const Map = () => {
             >
               <Text>{location.name}</Text>
             </TouchableOpacity>
-          ))}
+          ))} */}
         </KeyboardAvoidingView>
       </ScrollView>
     </SafeAreaView>

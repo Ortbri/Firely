@@ -8,6 +8,7 @@ const RootLayout = () => {
   return (
     <StripeProvider
       publishableKey="pk_test_51LfqbDIM1aKfC7VYU3d6X8rnm6TkZoUEWaXMwB2kKUCubeDya7bdhr8Mf9bU89xEO8ZJYOt7zntkSbTw0zf40fY300mREFabrb"
+
       // urlScheme="your-url-scheme" // required for 3D Secure and bank redirects
       // merchantIdentifier="merchant.com.{{YOUR_APP_NAME}}" // required for apple
     >

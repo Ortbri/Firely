@@ -32,9 +32,9 @@ const HomePage = () => {
 
   const isFocused = useIsFocused();
 
-  useEffect(() => {
-    fetchJobPosts();
-  }, [isFocused]);
+  // useEffect(() => {
+  //   fetchJobPosts();
+  // }, [isFocused]);
 
   const fetchJobPosts = async () => {
     try {
@@ -59,7 +59,7 @@ const HomePage = () => {
   return (
     <View style={styles.container}>
       {/* add handle refresh and other.... */}
-      <JobPostList jobPosts={jobPosts} />
+      {/* <JobPostList jobPosts={jobPosts} /> */}
       <Text>Home page stuff</Text>
       <Pressable onPress={createJob} style={styles.fab}>
         <Text style={{ color: "white", fontSize: 24 }}>+</Text>
