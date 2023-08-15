@@ -17,6 +17,11 @@ const profile = () => {
         </Pressable>
       </Link>
       <View style={{ borderWidth: 0.3, borderColor: "lightgrey" }} />
+      <Link href="/(tabs)/profile/checkout" asChild>
+        <Pressable style={{ margin: 24 }}>
+          <Text>Checkout</Text>
+        </Pressable>
+      </Link>
     </View>
   );
 };
