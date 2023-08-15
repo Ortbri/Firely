@@ -28,7 +28,7 @@ export default function Checkout() {
   });
 
   const user = useAuth();
-  const totalAmount = 222;
+  const totalAmount = 190;
   const { presentPaymentSheet, initPaymentSheet } = useStripe();
   const [paymentData, setPaymentData] = useState({
     paymentIntentClientSecret: "",
@@ -112,6 +112,20 @@ export default function Checkout() {
 
         if (paymentError) {
           console.error("Payment sheet presentation error:", paymentError);
+
+          // If there's an error, delete the previous session
+          const checkoutSessionDocRef = doc(
+            collection(
+              FIRESTORE_DB,
+              "users",
+              user.user?.uid,
+              "checkout_sessions"
+            ),
+            "SESSION_ID"
+          );
+          await deleteDoc(checkoutSessionDocRef);
+
+          console.log("Previous session deleted due to payment sheet error.");
         } else {
           console.log("Payment Sheet presented successfully");
         }
