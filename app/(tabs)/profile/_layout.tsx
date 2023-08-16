@@ -50,6 +50,12 @@ const ProfileStack = () => {
           headerTitle: "marketplace",
         }}
       />
+      <Stack.Screen
+        name="ui"
+        options={{
+          headerTitle: "marketplace",
+        }}
+      />
     </Stack>
   );
 };
