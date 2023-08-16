@@ -4,24 +4,33 @@ import React from "react";
 
 const profile = () => {
   return (
-    <View>
+    <View style={{ flex: 1 }}>
       <Link href="/(tabs)/profile/setting" asChild>
-        <Pressable style={{ margin: 24 }}>
+        <Pressable style={{ padding: 24 }}>
           <Text>Settings Page</Text>
         </Pressable>
       </Link>
-      <View style={{ borderWidth: 0.3, borderColor: "lightgrey" }} />
+      <View style={{ borderTopWidth: 0.3, borderTopColor: "lightgrey" }} />
+
       <Link href="/(tabs)/profile/payment" asChild>
-        <Pressable style={{ margin: 24 }}>
+        <Pressable style={{ padding: 24 }}>
           <Text>Payment Page</Text>
         </Pressable>
       </Link>
-      <View style={{ borderWidth: 0.3, borderColor: "lightgrey" }} />
+      <View style={{ borderTopWidth: 0.3, borderTopColor: "lightgrey" }} />
+
       <Link href="/(tabs)/profile/checkout" asChild>
-        <Pressable style={{ margin: 24 }}>
+        <Pressable style={{ padding: 24 }}>
           <Text>Checkout</Text>
         </Pressable>
       </Link>
+      <View style={{ borderTopWidth: 0.3, borderTopColor: "lightgrey" }} />
+      <Link href="/(tabs)/profile/marketplace" asChild>
+        <Pressable style={{ padding: 24 }}>
+          <Text>Marketplace</Text>
+        </Pressable>
+      </Link>
+      <View style={{ borderTopWidth: 0.3, borderTopColor: "lightgrey" }} />
     </View>
   );
 };

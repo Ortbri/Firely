@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, Pressable, StyleSheet, Alert } from "react-native";
+
 import { useStripe } from "@stripe/stripe-react-native";
 import {
   collection,
@@ -28,7 +29,7 @@ export default function Checkout() {
   });
 
   const user = useAuth();
-  const totalAmount = 190;
+  const totalAmount = 20;
   const { presentPaymentSheet, initPaymentSheet } = useStripe();
   const [paymentData, setPaymentData] = useState({
     paymentIntentClientSecret: "",
@@ -137,43 +138,6 @@ export default function Checkout() {
     }
   };
 
-  const initializePaymentSheet = async () => {
-    try {
-      console.log("Initializing Payment Sheet...");
-
-      const { error: initError } = await initPaymentSheet({
-        merchantDisplayName: "Your Merchant Name",
-        customerId: paymentData.customer,
-        customerEphemeralKeySecret: paymentData.ephemeralKeySecret,
-        paymentIntentClientSecret: paymentData.paymentIntentClientSecret,
-      });
-
-      if (initError) {
-        console.error("Payment sheet initialization error:", initError);
-      }
-    } catch (error) {
-      console.error(
-        "An error occurred during Payment Sheet initialization:",
-        error
-      );
-    }
-  };
-
-  const openPaymentSheet = async () => {
-    try {
-      console.log("Opening Payment Sheet...");
-
-      const { error: paymentError } = await presentPaymentSheet();
-
-      if (paymentError) {
-        console.error("Payment sheet presentation error:", paymentError);
-      } else {
-        console.log("Payment Sheet presented successfully");
-      }
-    } catch (error) {
-      console.error("An error occurred while opening Payment Sheet:", error);
-    }
-  };
   return (
     <View style={styles.container}>
       <Text style={styles.numberTotal}>{totalAmount}</Text>

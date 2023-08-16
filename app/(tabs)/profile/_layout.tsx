@@ -44,6 +44,12 @@ const ProfileStack = () => {
           headerTitle: "Checkout",
         }}
       />
+      <Stack.Screen
+        name="marketplace"
+        options={{
+          headerTitle: "marketplace",
+        }}
+      />
     </Stack>
   );
 };
