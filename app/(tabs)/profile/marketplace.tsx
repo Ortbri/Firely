@@ -67,19 +67,30 @@ export default function Marketplace() {
 
   const handleCheckout = async () => {
     try {
-      // 1. Create the payment document first
-      // const paymentData = {
-      //   amount: 12000, // Example amount in cents
-      //   currency: "usd", // Example currency
-      //   // ... any other relevant payment data
-      // };
+      // Check if the payment document already exists
+      // If it doesn't exist, create the payment document
+      const paymentDocumentRef = doc(
+        FIRESTORE_DB,
+        `stripe_customers/${userId}/payments/payment`
+      );
+      const paymentDocumentSnapshot = await getDoc(paymentDocumentRef);
 
-      // await createPaymentDocument(userId, paymentData);
+      if (!paymentDocumentSnapshot.exists()) {
+        const paymentData = {
+          amount: 12000, // Example amount in cents
+          currency: "usd", // Example currency
+          // ... any other relevant payment data
+        };
+
+        await createPaymentDocument(userId, paymentData);
+      }
+
+      // Continue with payment process
 
       // 2. Initialize the Payment Sheet
       const { error } = await initPaymentSheet({
         paymentIntentClientSecret:
-          "pi_3NhZhJIM1aKfC7VY16nkLDQA_secret_FMv6O7zyItfsuH1vSfdNY2kTr", // Replace with actual client secret
+          "pi_3NhfibIM1aKfC7VY0TLwbZht_secret_pZjdiqGlO8K0TomUkNc2ijtNe", // Replace with actual client secret
       });
 
       if (error) {
