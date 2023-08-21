@@ -43,52 +43,82 @@ export default function Marketplace() {
         FIRESTORE_DB,
         `stripe_customers/${userId}/payments`
       );
-      await addDoc(paymentsCollectionRef, paymentData);
-      console.log("Payment document created successfully");
+      const paymentDocRef = await addDoc(paymentsCollectionRef, paymentData);
+      console.log(
+        "Payment document created successfully with ID:",
+        paymentDocRef.id
+      );
+      return paymentDocRef.id;
     } catch (error) {
       console.error("Error creating payment document:", error);
+      return null;
     }
   };
 
   const handleCheckout = async () => {
     try {
-      const paymentId = "66AQkeN8YQh5MeotYJLE"; // Replace with the actual payment ID
-
-      const paymentDocumentRef = doc(
-        FIRESTORE_DB,
-        `stripe_customers/${userId}/payments/${paymentId}`
-      );
-      const paymentDocumentSnapshot = await getDoc(paymentDocumentRef);
-
-      // Check if the payment document exists
-      if (paymentDocumentSnapshot.exists()) {
-        const paymentData = paymentDocumentSnapshot.data();
-        const clientSecret = paymentData.client_secret;
-
-        // Initialize the Payment Sheet
-        const { error } = await initPaymentSheet({
-          paymentIntentClientSecret: clientSecret,
-        });
-
-        if (error) {
-          console.error("Error initializing payment sheet:", error);
-          return;
-        }
-
-        // Present the Payment Sheet
-        const { error: paymentError } = await presentPaymentSheet();
-
-        if (paymentError) {
-          console.error("Error presenting payment sheet:", paymentError);
-          // Handle the payment error, show an alert, etc.
-          return;
-        }
-
-        // Payment succeeded
-        console.log("Payment successful");
-      } else {
-        console.error("Payment document does not exist");
+      if (!userId) {
+        console.error("User ID not available");
+        return;
       }
+
+      const paymentData = {
+        amount: 690, // Example amount in cents
+        currency: "usd", // Example currency
+        // ... any other relevant payment data
+      };
+      const paymentId = await createPaymentDocument(userId, paymentData);
+      console.log(paymentId);
+      if (!paymentId) {
+        console.error("Failed to create payment document", paymentId);
+        return;
+      }
+
+      // Initiate the payment flow once the client_secret is available
+      const initiatePaymentFlow = async () => {
+        const paymentDocumentRef = doc(
+          FIRESTORE_DB,
+          `stripe_customers/${userId}/payments/${paymentId}`
+        );
+        const paymentDocumentSnapshot = await getDoc(paymentDocumentRef);
+
+        if (paymentDocumentSnapshot.exists()) {
+          const paymentData = paymentDocumentSnapshot.data();
+          const clientSecret = paymentData.client_secret;
+
+          if (clientSecret) {
+            // Initialize the Payment Sheet
+            const { error } = await initPaymentSheet({
+              paymentIntentClientSecret: clientSecret,
+            });
+
+            if (error) {
+              console.error("Error initializing payment sheet:", error);
+              return;
+            }
+
+            // Present the Payment Sheet
+            const { error: paymentError } = await presentPaymentSheet();
+
+            if (paymentError) {
+              console.error("Error presenting payment sheet:", paymentError);
+              // Handle the payment error, show an alert, etc.
+              return;
+            }
+
+            // Payment succeeded
+            console.log("Payment successful");
+          } else {
+            // Client secret not yet available, retry after a delay
+            setTimeout(initiatePaymentFlow, 1000); // Adjust delay as needed
+          }
+        } else {
+          console.error("Payment document does not exist");
+        }
+      };
+
+      // Start the payment flow
+      initiatePaymentFlow();
     } catch (error) {
       console.error("An error occurred:", error);
     }
@@ -102,6 +132,7 @@ export default function Marketplace() {
           <Text style={styles.details}>total: $45</Text>
         </Pressable>
       </View>
+
       <View style={styles.margins}>
         <Button onPress={handleCheckout}>
           <ButtonText>Checkout</ButtonText>
