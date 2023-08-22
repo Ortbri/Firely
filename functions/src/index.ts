@@ -99,6 +99,7 @@ exports.createStripePayment = functions.firestore
 /**
  * Helper function to update a payment record in Cloud Firestore.
  */
+
 const updatePaymentRecord = async (id) => {
   // Retrieve the payment object to make sure we have an up to date status.
   const payment = await stripe.paymentIntents.retrieve(id);
@@ -176,6 +177,86 @@ exports.handleWebhookEvents = functions.https.onRequest(async (req, resp) => {
   resp.json({ received: true });
 });
 
+
+/**
+ * Create Stripe Connect account ( marketplace worker )
+ */
+
+exports.createStripeConnectAccount = functions.https.onCall(async (data, context) => {
+  // Check authentication
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      'failed-precondition',
+      'The function must be called while authenticated!'
+    );
+  }
+  
+  const uid = context.auth.uid;
+  try {
+    // Create a Stripe Connect Express account
+    const account = await stripe.accounts.create({
+      type: 'express',
+      capabilities: {
+        card_payments: { requested: true },
+        transfers: { requested: true },
+      },
+    });
+    
+    // Generate an account onboarding link
+    const accountLink = await stripe.accountLinks.create({
+      account: account.id,
+      refresh_url: "https://example.com/reauth",
+      return_url: "https://example.com/return",
+      type: "account_onboarding",
+    });
+
+    // Save the account ID in the "stripe" subcollection under the user's document
+    const userStripeDocRef = admin.firestore().collection('users').doc(uid).collection('stripe').doc('workers');
+    
+    // Check if the subcollection exists, and create it if necessary
+    if (!(await userStripeDocRef.get()).exists) {
+      await userStripeDocRef.set({});
+    }
+    
+    // Set the accountId in the subcollection document
+    await userStripeDocRef.set({ accountId: account.id });
+    
+    return { url: accountLink.url };
+  } catch (error) {
+    throw new functions.https.HttpsError('internal', error.message);
+  }
+});
+
+
+exports.createStripeAccountOnCreate = functions.firestore
+  .document('stripe/{userId}/workers/{workerId}')
+  .onCreate(async (snapshot, context) => {
+    try {
+      // Check authentication
+      if (!context.auth) {
+        throw new functions.https.HttpsError(
+          'failed-precondition',
+          'The function must be called while authenticated!'
+        );
+      }
+
+      const uid = context.auth.uid;
+      if (!uid) throw new Error('Not authenticated!');
+
+      // Call the createStripeConnectAccount function
+      const createStripeConnectAccount = admin.functions().httpsCallable('createStripeConnectAccount');
+      const result = await createStripeConnectAccount();
+
+      // Update the document with the URL or any relevant information
+      await snapshot.ref.update({ onboardingUrl: result.data.url });
+    } catch (error) {
+      console.error('Error creating Stripe account:', error);
+    }
+  });
+
+
+
+
 /**
  * When a user deletes their account, clean up after them.
  */
@@ -192,6 +273,10 @@ exports.cleanupUser = functions.auth.user().onDelete(async (user) => {
   await dbRef.doc(user.uid).delete();
   return;
 });
+
+
+
+
 
 /**
  * To keep on top of errors, we should raise a verbose error report with Stackdriver rather

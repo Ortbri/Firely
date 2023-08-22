@@ -37,6 +37,12 @@ const profile = () => {
         </Pressable>
       </Link>
       <View style={{ borderTopWidth: 0.3, borderTopColor: "lightgrey" }} />
+      <Link href="/(tabs)/profile/onboarding" asChild>
+        <Pressable style={{ padding: 24 }}>
+          <Text>Onboarding</Text>
+        </Pressable>
+      </Link>
+      <View style={{ borderTopWidth: 0.3, borderTopColor: "lightgrey" }} />
     </View>
   );
 };

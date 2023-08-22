@@ -37,7 +37,13 @@ export default function Marketplace() {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [isLoading, setLoading] = useState(false);
 
-  const createPaymentDocument = async (userId, paymentData) => {
+  const createPaymentDocument = async (
+    userId: string,
+    paymentData: {
+      amount: number; // Example amount in cents
+      currency: string;
+    }
+  ) => {
     try {
       const paymentsCollectionRef = collection(
         FIRESTORE_DB,
@@ -90,6 +96,7 @@ export default function Marketplace() {
             // Initialize the Payment Sheet
             const { error } = await initPaymentSheet({
               paymentIntentClientSecret: clientSecret,
+              merchantDisplayName: "Colonly",
             });
 
             if (error) {

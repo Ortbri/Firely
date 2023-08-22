@@ -56,6 +56,12 @@ const ProfileStack = () => {
           headerTitle: "marketplace",
         }}
       />
+      <Stack.Screen
+        name="onboarding"
+        options={{
+          headerTitle: "onboarding",
+        }}
+      />
     </Stack>
   );
 };
