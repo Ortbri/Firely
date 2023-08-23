@@ -60,6 +60,7 @@ const ProfileStack = () => {
         name="onboarding"
         options={{
           headerTitle: "onboarding",
+          // presentation: "modal",
         }}
       />
     </Stack>
