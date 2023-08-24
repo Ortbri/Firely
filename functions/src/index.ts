@@ -184,53 +184,67 @@ exports.handleWebhookEvents = functions.https.onRequest(async (req, resp) => {
 
 
 
-exports.createConnectedAccount = functions.firestore
+exports.createConnectedAccountAndTriggerRefreshUrl = functions.firestore
   .document('stripe_supplier/{userId}')
-  .onCreate(async (snap, context) => {
+  .onCreate(async (snapshot, context) => {
     try {
-      const account = await stripe.accounts.create({ type: 'express', country: 'US' });
-
       // Get the Firebase UID from the context
       const firebaseUID = context.params.userId;
 
-      // Create a subcollection "stripe_supplier" under the user's UID
+      // Retrieve the user's email from the existing location in Firestore
+      const userData = await admin.firestore()
+        .collection('users') // Replace with the actual collection path
+        .doc(firebaseUID)
+        .get();
+
+      const userEmail = userData.data().email;
+
+      // Check if an account with the same email already exists
+      const existingAccount = await admin.firestore()
+        .collection('stripe_supplier')
+        .where('email', '==', userEmail)
+        .get();
+
+      if (!existingAccount.empty) {
+        throw new Error('An account with this email already exists.');
+      }
+
+      // Create a Stripe account
+      const account = await stripe.accounts.create({
+        type: 'express',
+        country: 'US',
+        email: userEmail, // Set the email associated with the account
+      });
+
+      // Store the account information in Firestore
       await admin.firestore()
         .collection('stripe_supplier')
         .doc(firebaseUID)
         .set({
           account_id: account.id,
-        });
+        }, { merge: true }); // Merge option to update the document
 
-      // Write the created account details to the Firestore document
-      await snap.ref.set({ account_id: account.id }, { merge: true });
+      // Create the account link
+      const accountLinks = await stripe.accountLinks.create({
+        type: 'account_onboarding',
+        account: account.id, // Use the Stripe account ID directly
+        refresh_url: 'https://us-central1-functions-849f0.cloudfunctions.net/refresh_url', // Update with the correct refresh_url
+        return_url: 'https://www.colonly.com', // Set the return_url
+      });
 
+      // Update the Firestore document with the generated account link
+       // Store the account information in Firestore
+      await admin.firestore()
+        .collection('stripe_supplier')
+        .doc(firebaseUID)
+        .set({
+            account_link: accountLinks.url
+        }, { merge: true }); // Merge option to
       return;
     } catch (error) {
       console.error('Error creating connected account:', error);
     }
   });
-
-
-exports.refresh_url = functions.https.onRequest(async (req, res) => {
-  try {
-    const body = JSON.parse(req.body);
-
-    const { account_id } = body; // Assuming you pass the Stripe account ID in the request body
-
-    const accountLinks = await stripe.accountLinks.create({
-      type: 'account_onboarding',
-      account: account_id, // Use the Stripe account ID directly
-      refresh_url: 'https://us-central1-functions-849f0.cloudfunctions.net/refresh_url', // Update with the correct refresh_url
-      return_url: 'https://www.colonly.com', // Set the return_url
-    });
-
-    res.json(accountLinks.url);
-  } catch (error) {
-    console.log('Could not get or create account links', error);
-    res.status(400).send('Could not get or create account links');
-  }
-});
-
 
 
 /**
