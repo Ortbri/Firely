@@ -14,12 +14,6 @@ import {
 } from "firebase/firestore";
 import { FIRESTORE_DB } from "@/config/FirebaseConfig";
 import { useAuth } from "@/context/AuthContext";
-import * as Linking from "expo-linking";
-import { WebView } from "react-native-webview";
-import { ScrollView } from "react-native-gesture-handler";
-
-// test account ID: acct_1Ni1KDIAsq4TQBbB
-// test onboarding link: https://connect.stripe.com/d/setup/e/_OV1Mm75SB35WXYEWq3sx2BT9FF/YWNjdF8xTmkxS0RJQXNxNFRRQmJC/7b5ad3d78d774128e
 
 export default function Stripe() {
   const screenHeight = Dimensions.get("window").height;
@@ -53,22 +47,34 @@ export default function Stripe() {
       height: screenHeight,
     },
   });
-
   const userId = useAuth().user?.uid;
   const router = useRouter();
+
   const createUser = async () => {
+    console.log("Creating user worker:", userId);
+
     try {
-      // Create a document in Firestore to trigger the Cloud Function
-      const workersCollection = collection(
+      // Create a document in the "stripe_supplier" collection with the user's UID as the document ID
+      const stripeSupplierCollection = collection(
         FIRESTORE_DB,
-        `stripe/${userId}/workers`
+        "stripe_supplier"
       );
-      await addDoc(workersCollection, {});
-      console.log("User created successfully");
+      const userDocument = doc(stripeSupplierCollection, userId);
+
+      // Data to store in the document
+      const userData = {
+        account_id: "", // Set this to the Stripe account ID
+        // otherDetails: "", // Add any other details you want to store
+      };
+
+      await setDoc(userDocument, userData);
+
+      console.log("User worker created successfully");
     } catch (error) {
-      console.error("Error creating user:", error);
+      console.error("Error creating user worker:", error);
     }
   };
+
   const testButton = () => {
     router.push("/(tabs)/profile/onboarding/stripeweb");
   };
@@ -83,11 +89,11 @@ export default function Stripe() {
       <Button
         size="md"
         backgroundColor="black"
-        isDisabled={true}
+        // isDisabled={true}
         onPress={createUser}
         style={styles.buttonContainer}
       >
-        <ButtonText>Start</ButtonText>
+        <ButtonText>Create Account</ButtonText>
       </Button>
       <Button
         size="md"
@@ -97,7 +103,6 @@ export default function Stripe() {
       >
         <ButtonText>Test Link</ButtonText>
       </Button>
-      {/* <WebView style={styles.webview} source={{ uri: testOnboardingLink }} /> */}
     </View>
   );
 }

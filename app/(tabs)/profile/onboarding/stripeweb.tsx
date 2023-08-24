@@ -66,10 +66,10 @@ export default function StripeWeb() {
     },
   });
 
-  const testAccountId = "acct_1Ni1KDIAsq4TQBbB";
+  const testAccountId = "acct_1NiJ9XRAlknMlzHA";
 
   const testOnboardingLink =
-    "https://connect.stripe.com/d/setup/e/_OV1Mm75SB35WXYEWq3sx2BT9FF/YWNjdF8xTmkxS0RJQXNxNFRRQmJC/7b5ad3d78d774128e";
+    "https://connect.stripe.com/d/setup/e/_OVJndGpsuR1WseKPuo8R2MqJol/YWNjdF8xTmlKOVhSQWxrbk1sekhB/222aef10c10fefb6e";
   const userId = useAuth().user?.uid;
   console.log(userId);
   const router = useRouter();

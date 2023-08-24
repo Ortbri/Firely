@@ -182,84 +182,61 @@ exports.handleWebhookEvents = functions.https.onRequest(async (req, resp) => {
  * Create Stripe Connect account ( marketplace worker )
  */
 
-exports.createStripeConnectAccount = functions.https.onCall(async (data, context) => {
-  // Check authentication
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
-      'failed-precondition',
-      'The function must be called while authenticated!'
-    );
-  }
-  
-  const uid = context.auth.uid;
-  try {
-    // Create a Stripe Connect Express account
-    const account = await stripe.accounts.create({
-      type: 'express',
-      capabilities: {
-        card_payments: { requested: true },
-        transfers: { requested: true },
-      },
-    });
-    
-    // Generate an account onboarding link
-    const accountLink = await stripe.accountLinks.create({
-      account: account.id,
-      refresh_url: "https://example.com/reauth",
-      return_url: "https://example.com/return",
-      type: "account_onboarding",
-    });
-
-    // Save the account ID in the "stripe" subcollection under the user's document
-    const userStripeDocRef = admin.firestore().collection('users').doc(uid).collection('stripe').doc('workers');
-    
-    // Check if the subcollection exists, and create it if necessary
-    if (!(await userStripeDocRef.get()).exists) {
-      await userStripeDocRef.set({});
-    }
-    
-    // Set the accountId in the subcollection document
-    await userStripeDocRef.set({ accountId: account.id });
-    
-    return { url: accountLink.url };
-  } catch (error) {
-    throw new functions.https.HttpsError('internal', error.message);
-  }
-});
 
 
-exports.createStripeAccountOnCreate = functions.firestore
-  .document('stripe/{userId}/workers/{workerId}')
-  .onCreate(async (snapshot, context) => {
+exports.createConnectedAccount = functions.firestore
+  .document('stripe_supplier/{userId}')
+  .onCreate(async (snap, context) => {
     try {
-      // Check authentication
-      if (!context.auth) {
-        throw new functions.https.HttpsError(
-          'failed-precondition',
-          'The function must be called while authenticated!'
-        );
-      }
+      const account = await stripe.accounts.create({ type: 'express', country: 'US' });
 
-      const uid = context.auth.uid;
-      if (!uid) throw new Error('Not authenticated!');
+      // Get the Firebase UID from the context
+      const firebaseUID = context.params.userId;
 
-      // Call the createStripeConnectAccount function
-      const createStripeConnectAccount = admin.functions().httpsCallable('createStripeConnectAccount');
-      const result = await createStripeConnectAccount();
+      // Create a subcollection "stripe_supplier" under the user's UID
+      await admin.firestore()
+        .collection('stripe_supplier')
+        .doc(firebaseUID)
+        .set({
+          account_id: account.id,
+        });
 
-      // Update the document with the URL or any relevant information
-      await snapshot.ref.update({ onboardingUrl: result.data.url });
+      // Write the created account details to the Firestore document
+      await snap.ref.set({ account_id: account.id }, { merge: true });
+
+      return;
     } catch (error) {
-      console.error('Error creating Stripe account:', error);
+      console.error('Error creating connected account:', error);
     }
   });
 
+
+exports.refresh_url = functions.https.onRequest(async (req, res) => {
+  try {
+    const body = JSON.parse(req.body);
+
+    const { account_id } = body; // Assuming you pass the Stripe account ID in the request body
+
+    const accountLinks = await stripe.accountLinks.create({
+      type: 'account_onboarding',
+      account: account_id, // Use the Stripe account ID directly
+      refresh_url: 'https://us-central1-functions-849f0.cloudfunctions.net/refresh_url', // Update with the correct refresh_url
+      return_url: 'https://www.colonly.com', // Set the return_url
+    });
+
+    res.json(accountLinks.url);
+  } catch (error) {
+    console.log('Could not get or create account links', error);
+    res.status(400).send('Could not get or create account links');
+  }
+});
 
 
 
 /**
  * When a user deletes their account, clean up after them.
  */
+
 exports.cleanupUser = functions.auth.user().onDelete(async (user) => {
   const dbRef = admin.firestore().collection('stripe_customers');
   const customer = (await dbRef.doc(user.uid).get()).data();
