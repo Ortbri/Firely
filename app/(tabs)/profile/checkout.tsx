@@ -1,11 +1,24 @@
-import { View, Text } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import React from "react";
+import WebView from "react-native-webview";
+import { Stack } from "expo-router";
 
 export default function checkout() {
+  const styles = StyleSheet.create({
+    webview: {
+      flex: 1,
+    },
+  });
   return (
-    <View>
-      <Text>checkout</Text>
-    </View>
+    <>
+      <Stack screenOptions={{ headerTransparent: true, title: "hello" }} />
+      <View style={{ flex: 1 }}>
+        <WebView
+          style={styles.webview}
+          source={{ uri: "https://rocketrides.io" }}
+        />
+      </View>
+    </>
   );
 }
 // import React, { useState, useEffect } from "react";

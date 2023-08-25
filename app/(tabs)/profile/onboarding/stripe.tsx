@@ -54,28 +54,44 @@ export default function Stripe() {
     console.log("Creating user worker:", userId);
 
     try {
-      // Create a document in the "stripe_supplier" collection with the user's UID as the document ID
-      const stripeSupplierCollection = collection(
-        FIRESTORE_DB,
-        "stripe_supplier"
+      // Check if the stripe_supplier document exists for the given UID
+      const stripeSupplierDocRef = doc(
+        collection(FIRESTORE_DB, "stripe_supplier"),
+        userId
       );
-      const userDocument = doc(stripeSupplierCollection, userId);
+      const stripeSupplierDocSnapshot = await getDoc(stripeSupplierDocRef);
 
-      // Data to store in the document
-      const userData = {
-        account_id: "", // Set this to the Stripe account ID
-        // otherDetails: "", // Add any other details you want to store
-      };
+      if (!stripeSupplierDocSnapshot.exists()) {
+        // If the document doesn't exist, create it
+        const userData = {
+          account_id: "", // Set this to the Stripe account ID
+          // otherDetails: "", // Add any other details you want to store
+        };
 
-      await setDoc(userDocument, userData);
-
-      console.log("User worker created successfully");
+        await setDoc(stripeSupplierDocRef, userData);
+        console.log("User worker created successfully");
+      } else {
+        console.log("User worker already exists");
+      }
     } catch (error) {
       console.error("Error creating user worker:", error);
     }
   };
 
-  const testButton = () => {
+  const testButton = async () => {
+    try {
+      const userDocRef = doc(
+        collection(FIRESTORE_DB, "stripe_supplier"),
+        userId
+      );
+
+      // Reset account_link to an empty string
+      await setDoc(userDocRef, { account_link: "" }, { merge: true });
+
+      console.log("Account link reset successfully");
+    } catch (error) {
+      console.error("Error resetting account link:", error);
+    }
     router.push("/(tabs)/profile/onboarding/stripeweb");
   };
   return (
@@ -86,19 +102,13 @@ export default function Stripe() {
       <Text style={styles.subtitle}>Step 2</Text>
       <Text style={styles.subtitle}>Step 3</Text>
 
-      <Button
-        size="md"
-        backgroundColor="black"
-        // isDisabled={true}
-        onPress={createUser}
-        style={styles.buttonContainer}
-      >
+      <Button bg="black" onPress={createUser} style={styles.buttonContainer}>
         <ButtonText>Create Account</ButtonText>
       </Button>
       <Button
         size="md"
-        backgroundColor="black"
         onPress={testButton}
+        variant="outline"
         style={styles.buttonContainer}
       >
         <ButtonText>Test Link</ButtonText>

@@ -41,7 +41,7 @@ const ProfileStack = () => {
       <Stack.Screen
         name="checkout"
         options={{
-          headerTitle: "Checkout",
+          headerTitle: "Wallet",
         }}
       />
       <Stack.Screen

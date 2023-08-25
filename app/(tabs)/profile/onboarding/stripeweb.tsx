@@ -4,11 +4,13 @@ import {
   StyleSheet,
   Image,
   Dimensions,
+  Button,
   Pressable,
+  ActivityIndicator,
 } from "react-native";
 import {
   ArrowDownIcon,
-  Button,
+  // Button,
   ButtonText,
   CheckCircleIcon,
   ChevronLeftIcon,
@@ -64,10 +66,9 @@ export default function StripeWeb() {
   });
 
   const userId = useAuth().user?.uid;
-  console.log(userId);
-  const router = useRouter();
-
+  const [loading, setLoading] = useState(true);
   const [webViewUri, setWebViewUri] = useState(null);
+  const [error, setError] = useState(null);
 
   const getAccountLinkAndOpenOnboarding = async () => {
     try {
@@ -75,10 +76,27 @@ export default function StripeWeb() {
         collection(FIRESTORE_DB, "stripe_supplier"),
         userId
       );
-      const userDocSnapshot = await getDoc(userDocRef);
+      let userDocSnapshot = await getDoc(userDocRef);
 
       if (userDocSnapshot.exists()) {
-        const accountLink = userDocSnapshot.data().account_link;
+        let accountLink = userDocSnapshot.data().account_link;
+
+        // If account_link is empty, retry loading it a few times
+        let maxRetries = 6;
+        let retryCount = 0;
+        while (!accountLink && retryCount < maxRetries) {
+          console.log("Retrying loading account link...");
+          wait(3000); // Wait for a certain amount of time before retrying
+          userDocSnapshot = await getDoc(userDocRef);
+          accountLink = userDocSnapshot.data().account_link;
+          retryCount++;
+          console.log("Retry count:");
+        }
+
+        if (!accountLink) {
+          console.error("Account link is empty after retries.");
+          return;
+        }
 
         // Check if the device can open the provided link
         const canOpenLink = await Linking.canOpenURL(accountLink);
@@ -97,28 +115,56 @@ export default function StripeWeb() {
     }
   };
 
-  useEffect(() => {
-    if (webViewUri) {
-      // WebView has a URI to load
-      return () => {
-        // Clean up
-        setWebViewUri(null);
-      };
-    }
-  }, [webViewUri]);
+  const wait = (milliseconds: number | undefined) => {
+    return new Promise((resolve) => setTimeout(resolve, milliseconds));
+  };
 
+  const retryLoading = async () => {
+    setError(null);
+    setLoading(true);
+    await wait(3000); // Wait for a certain amount of time before retrying
+    getAccountLinkAndOpenOnboarding();
+  };
+
+  useEffect(() => {
+    getAccountLinkAndOpenOnboarding();
+  }, []);
+
+  const onLoadEnd = () => {
+    setLoading(false);
+  };
   return (
     <>
       <StatusBar style="light" animated />
+
       <View style={{ flex: 1 }}>
-        <Button style={{}} onPress={getAccountLinkAndOpenOnboarding}>
-          <ButtonText>helooooo</ButtonText>
-        </Button>
-        {webViewUri && (
-          <WebView
-            style={styles.webview}
-            source={{ uri: webViewUri }}
-            onError={(error) => console.error("WebView Error:", error)}
+        {error ? (
+          <View
+            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          >
+            <Text>Error loading content. Please try again.</Text>
+            <Button title="Retry" onPress={retryLoading} />
+          </View>
+        ) : (
+          webViewUri && (
+            <WebView
+              style={styles.webview}
+              source={{ uri: webViewUri }}
+              onError={(error) => console.error("WebView Error:", error)}
+              onLoadEnd={onLoadEnd}
+            />
+          )
+        )}
+        {loading && !error && (
+          <ActivityIndicator
+            style={{
+              position: "absolute",
+              top: "30%",
+              left: "50%",
+              right: "50%",
+            }}
+            size={22}
+            color="#ffbb00"
           />
         )}
       </View>

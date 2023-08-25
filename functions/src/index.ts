@@ -65,6 +65,7 @@ exports.createEphemeralKey = functions.https.onCall(async (data, context) => {
 exports.createStripePayment = functions.firestore
   .document('stripe_customers/{userId}/payments/{pushId}')
   .onCreate(async (snap, context) => {
+    
     const { amount, currency } = snap.data();
     try {
       // Look up the Stripe customer id.
@@ -149,6 +150,8 @@ exports.handleWebhookEvents = functions.https.onRequest(async (req, resp) => {
     resp.status(401).send('Webhook Error: Invalid Secret');
     return;
   }
+  
+
 
   if (relevantEvents.has(event.type)) {
     try {
@@ -183,84 +186,97 @@ exports.handleWebhookEvents = functions.https.onRequest(async (req, resp) => {
  */
 
 
-
+// copied from Rocket Rides Example
+//  where it says if (account_id == "") might not be necessary, handled in front end
 exports.createConnectedAccountAndTriggerRefreshUrl = functions.firestore
   .document('stripe_supplier/{userId}')
   .onCreate(async (snapshot, context) => {
     try {
-      // Get the Firebase UID from the context
       const firebaseUID = context.params.userId;
-
-      // Retrieve the user's email from the existing location in Firestore
-      const userData = await admin.firestore()
-        .collection('users') // Replace with the actual collection path
-        .doc(firebaseUID)
-        .get();
-
-      const userEmail = userData.data().email;
-
-      // Check if an account with the same email already exists
-      const existingAccount = await admin.firestore()
+      const stripeID = await admin.firestore()
         .collection('stripe_supplier')
         .doc(firebaseUID)
         .get();
-
-      const stripeUser = existingAccount.data().account_link;
-      // if it doesnt work , start here ----------
-      if (stripeUser) {
-        throw new Error('An account with this email already exists.');
-      } else {
- // Create a Stripe account
-      const account = await stripe.accounts.create({
-        type: 'express',
-        country: 'US',
-        email: userEmail, // Set the email associated with the account
-      });
+      
+      const account_id = stripeID.data().account_id;
+      if (account_id == "") {
+        const userData = await admin.firestore()
+          .collection('users') // Replace with the actual collection path
+          .doc(firebaseUID)
+          .get();
+        const userEmail = userData.data().email;
+        const account = await stripe.accounts.create({
+          type: 'express',
+          country: 'US',
+          email: userEmail, // Set the email associated with the account
+        });
 
          // Store the account information in Firestore
-      await admin.firestore()
-        .collection('stripe_supplier')
-        .doc(firebaseUID)
-        .set({
-          account_id: account.id,
-        }, { merge: true }); // Merge option to update the document
+        await admin.firestore()
+          .collection('stripe_supplier')
+          .doc(firebaseUID)
+          .set({
+            account_id: account.id,
+          }, { merge: true }); // Merge option to update the document
  // Create the account link
-      const accountLinks = await stripe.accountLinks.create({
-        type: 'account_onboarding',
-        account: account.id, // Use the Stripe account ID directly
-        refresh_url: 'https://us-central1-functions-849f0.cloudfunctions.net/refresh_url', // Update with the correct refresh_url
-        return_url: 'https://www.colonly.com', // Set the return_url
-      });
+          const accountLinks = await stripe.accountLinks.create({
+            type: 'account_onboarding',
+            account: account.id, // Use the Stripe account ID directly
+            refresh_url: 'https://us-central1-functions-849f0.cloudfunctions.net/refresh_url', // Update with the correct refresh_url
+            return_url: 'https://www.colonly.com', // Set the return_url
+          });
           await admin.firestore()
-        .collection('stripe_supplier')
-        .doc(firebaseUID)
-        .set({
+          .collection('stripe_supplier')
+          .doc(firebaseUID)
+          .set({
             account_link: accountLinks.url
-        }, { merge: true }); // Merge option to
-      return;
-      }
-    } catch (error) {
+          }, { merge: true }); // Merge option to
+          return;
+        }
+        } catch (error) {
       console.error('Error creating connected account:', error);
     };
-       });
-
-
-     
-
-     
-     
-
-      // Update the Firestore document with the generated account link
-       // Store the account information in Firestore
-    
-    
-
-
-  /**
-   * 
-   * 
-   * 
-   */
+  });
+// copied from Rocket Rides Example
+exports.triggerRefresh = functions.firestore
+  .document('stripe_supplier/{userId}')
+  .onUpdate(async (snapshot, context) => {
+    try {
+      const firebaseUID = context.params.userId;
+      const userData = await admin.firestore()
+        .collection('stripe_supplier')
+        .doc(firebaseUID)
+        .get();
+      
+      const account_link = userData.data().account_link;
+      if (account_link == "") {
+        const userData = await admin.firestore()
+          .collection('stripe_supplier') // Replace with the actual collection path
+          .doc(firebaseUID)
+          .get();
+        const stripeID = userData.data().account_id;
+       
+      
+ // Create the account link
+          const accountLinks = await stripe.accountLinks.create({
+            type: 'account_onboarding',
+            account: stripeID, // Use the Stripe account ID directly
+            refresh_url: 'https://us-central1-functions-849f0.cloudfunctions.net/refresh_url', // Update with the correct refresh_url
+            return_url: 'https://www.colonly.com', // Set the return_url
+          });
+          await admin.firestore()
+          .collection('stripe_supplier')
+          .doc(firebaseUID)
+          .set({
+            account_link: accountLinks.url
+          }, { merge: true }); // Merge option to
+          return;
+        }
+        } catch (error) {
+      console.error('Error creating connected account:', error);
+    };
+    });
+       
 
 /**
  * When a user deletes their account, clean up after them.
@@ -338,3 +354,4 @@ function userFacingMessage(error) {
     ? error.message
     : 'An error occurred, developers have been alerted';
 }
+
