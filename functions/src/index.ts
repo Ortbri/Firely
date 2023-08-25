@@ -202,50 +202,65 @@ exports.createConnectedAccountAndTriggerRefreshUrl = functions.firestore
       // Check if an account with the same email already exists
       const existingAccount = await admin.firestore()
         .collection('stripe_supplier')
-        .where('email', '==', userEmail)
+        .doc(firebaseUID)
         .get();
 
-      if (!existingAccount.empty) {
+      const stripeUser = existingAccount.data().account_link;
+      // if it doesnt work , start here ----------
+      if (stripeUser) {
         throw new Error('An account with this email already exists.');
-      }
-
-      // Create a Stripe account
+      } else {
+ // Create a Stripe account
       const account = await stripe.accounts.create({
         type: 'express',
         country: 'US',
         email: userEmail, // Set the email associated with the account
       });
 
-      // Store the account information in Firestore
+         // Store the account information in Firestore
       await admin.firestore()
         .collection('stripe_supplier')
         .doc(firebaseUID)
         .set({
           account_id: account.id,
         }, { merge: true }); // Merge option to update the document
-
-      // Create the account link
+ // Create the account link
       const accountLinks = await stripe.accountLinks.create({
         type: 'account_onboarding',
         account: account.id, // Use the Stripe account ID directly
         refresh_url: 'https://us-central1-functions-849f0.cloudfunctions.net/refresh_url', // Update with the correct refresh_url
         return_url: 'https://www.colonly.com', // Set the return_url
       });
-
-      // Update the Firestore document with the generated account link
-       // Store the account information in Firestore
-      await admin.firestore()
+          await admin.firestore()
         .collection('stripe_supplier')
         .doc(firebaseUID)
         .set({
             account_link: accountLinks.url
         }, { merge: true }); // Merge option to
       return;
+      }
     } catch (error) {
       console.error('Error creating connected account:', error);
-    }
-  });
+    };
+       });
 
+
+     
+
+     
+     
+
+      // Update the Firestore document with the generated account link
+       // Store the account information in Firestore
+    
+    
+
+
+  /**
+   * 
+   * 
+   * 
+   */
 
 /**
  * When a user deletes their account, clean up after them.

@@ -14,7 +14,7 @@ import {
   ChevronLeftIcon,
 } from "@gluestack-ui/react";
 import { Stack, usePathname, useRouter } from "expo-router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useStripe, StripeProvider } from "@stripe/stripe-react-native";
 import {
   collection,
@@ -32,9 +32,6 @@ import { WebView } from "react-native-webview";
 import { ScrollView } from "react-native-gesture-handler";
 import { StatusBar } from "expo-status-bar";
 import { MaterialIcons } from "@expo/vector-icons";
-
-// test account ID: acct_1Ni1KDIAsq4TQBbB
-// test onboarding link: https://connect.stripe.com/d/setup/e/_OV1Mm75SB35WXYEWq3sx2BT9FF/YWNjdF8xTmkxS0RJQXNxNFRRQmJC/7b5ad3d78d774128e
 
 export default function StripeWeb() {
   const screenHeight = Dimensions.get("window").height;
@@ -61,52 +58,70 @@ export default function StripeWeb() {
       padding: 4,
     },
     webview: {
-      //   flex: 1,
+      // flex: 1,
       height: screenHeight,
     },
   });
 
-  const testAccountId = "acct_1NiJ9XRAlknMlzHA";
-
-  const testOnboardingLink =
-    "https://connect.stripe.com/d/setup/e/_OVJndGpsuR1WseKPuo8R2MqJol/YWNjdF8xTmlKOVhSQWxrbk1sekhB/222aef10c10fefb6e";
   const userId = useAuth().user?.uid;
   console.log(userId);
   const router = useRouter();
-  const createUser = async () => {
+
+  const [webViewUri, setWebViewUri] = useState(null);
+
+  const getAccountLinkAndOpenOnboarding = async () => {
     try {
-      // Create a document in Firestore to trigger the Cloud Function
-      const workersCollection = collection(
-        FIRESTORE_DB,
-        `stripe/${userId}/workers`
+      const userDocRef = doc(
+        collection(FIRESTORE_DB, "stripe_supplier"),
+        userId
       );
-      await addDoc(workersCollection, {});
-      console.log("User created successfully");
+      const userDocSnapshot = await getDoc(userDocRef);
+
+      if (userDocSnapshot.exists()) {
+        const accountLink = userDocSnapshot.data().account_link;
+
+        // Check if the device can open the provided link
+        const canOpenLink = await Linking.canOpenURL(accountLink);
+
+        if (canOpenLink) {
+          // Set the account link URI to open in WebView
+          setWebViewUri(accountLink);
+        } else {
+          console.error("Cannot open account onboarding link.");
+        }
+      } else {
+        console.log("Document not found.");
+      }
     } catch (error) {
-      console.error("Error creating user:", error);
+      console.error("Error retrieving account link:", error);
     }
   };
-  const testButton = async () => {
-    // Test onboarding link
-    const testOnboardingLink =
-      "https://connect.stripe.com/d/setup/e/_OV1Mm75SB35WXYEWq3sx2BT9FF/YWNjdF8xTmkxS0RJQXNxNFRRQmJC/7b5ad3d78d774128e";
 
-    // Check if the device can open the provided link
-    const canOpenLink = await Linking.canOpenURL(testOnboardingLink);
-
-    if (canOpenLink) {
-      // Open the test onboarding link in the browser
-      await Linking.openURL(testOnboardingLink);
-      console.log("Opening test onboarding link...");
-    } else {
-      console.error("Cannot open test onboarding link.");
+  useEffect(() => {
+    if (webViewUri) {
+      // WebView has a URI to load
+      return () => {
+        // Clean up
+        setWebViewUri(null);
+      };
     }
-  };
+  }, [webViewUri]);
 
   return (
     <>
       <StatusBar style="light" animated />
-      <WebView style={styles.webview} source={{ uri: testOnboardingLink }} />
+      <View style={{ flex: 1 }}>
+        <Button style={{}} onPress={getAccountLinkAndOpenOnboarding}>
+          <ButtonText>helooooo</ButtonText>
+        </Button>
+        {webViewUri && (
+          <WebView
+            style={styles.webview}
+            source={{ uri: webViewUri }}
+            onError={(error) => console.error("WebView Error:", error)}
+          />
+        )}
+      </View>
     </>
   );
 }
