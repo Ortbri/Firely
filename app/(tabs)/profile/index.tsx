@@ -1,10 +1,21 @@
 import { View, Text, Pressable } from "react-native";
 import { Link } from "expo-router";
 import React from "react";
+import { useAuth } from "@/context/AuthContext";
 
 const profile = () => {
+  const user = useAuth();
   return (
     <View style={{ flex: 1 }}>
+      <View>
+        <Text style={{ alignSelf: "center", padding: 6 }}>
+          {user.user?.email}
+        </Text>
+        <Text style={{ alignSelf: "center", padding: 6 }}>
+          {user.user?.uid}
+        </Text>
+      </View>
+      <View style={{ borderTopWidth: 0.3, borderTopColor: "lightgrey" }} />
       <Link href="/(tabs)/profile/setting" asChild>
         <Pressable style={{ padding: 24 }}>
           <Text>Settings Page</Text>

@@ -1,4 +1,11 @@
-import { View, Text, StyleSheet, Pressable, Alert } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Alert,
+  TextInput,
+} from "react-native";
 import React, { useEffect, useState } from "react";
 import { Button, ButtonText } from "@gluestack-ui/react";
 import axios from "axios";
@@ -36,6 +43,7 @@ export default function Marketplace() {
   const userId = useAuth().user?.uid;
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [isLoading, setLoading] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState("");
 
   const createPaymentDocument = async (
     userId: string,
@@ -61,6 +69,8 @@ export default function Marketplace() {
     }
   };
 
+  const amountInCents = parseFloat(paymentAmount) * 100;
+  console.log(amountInCents);
   const handleCheckout = async () => {
     try {
       if (!userId) {
@@ -69,7 +79,7 @@ export default function Marketplace() {
       }
 
       const paymentData = {
-        amount: 690, // Example amount in cents
+        amount: amountInCents, // Example amount in cents
         currency: "usd", // Example currency
         // ... any other relevant payment data
       };
@@ -136,7 +146,15 @@ export default function Marketplace() {
       <View style={styles.margins}>
         <Pressable style={styles.personContainer}>
           <Text style={styles.person}>Person</Text>
-          <Text style={styles.details}>total: $45</Text>
+          <Text style={styles.details}>
+            Stripe total with cents: {amountInCents}
+          </Text>
+          <TextInput
+            placeholder="Enter amount"
+            keyboardType="number-pad"
+            value={paymentAmount}
+            onChangeText={setPaymentAmount}
+          />
         </Pressable>
       </View>
 
