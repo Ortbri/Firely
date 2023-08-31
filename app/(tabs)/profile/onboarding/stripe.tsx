@@ -94,6 +94,22 @@ export default function Stripe() {
     }
     router.push("/(tabs)/profile/onboarding/stripeweb");
   };
+  const loginButton = async () => {
+    try {
+      const userDocRef = doc(
+        collection(FIRESTORE_DB, "stripe_supplier"),
+        userId
+      );
+
+      // Reset account_link to an empty string
+      await setDoc(userDocRef, { login_linking: "" }, { merge: true });
+
+      console.log("Account link reset successfully");
+    } catch (error) {
+      console.error("Error resetting account link:", error);
+    }
+    router.push("/(tabs)/profile/onboarding/stripeLogin");
+  };
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Steps to complete</Text>
@@ -112,6 +128,9 @@ export default function Stripe() {
         style={styles.buttonContainer}
       >
         <ButtonText>Test Link</ButtonText>
+      </Button>
+      <Button onPress={loginButton} style={styles.buttonContainer}>
+        <ButtonText>Login</ButtonText>
       </Button>
     </View>
   );

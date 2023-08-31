@@ -99,7 +99,155 @@ exports.createStripePayment = functions.firestore
     }
   });
 
-  
+/**
+ * Create Stripe Connect account ( marketplace worker )
+ */
+
+
+// copied from Rocket Rides Example
+//  where it says if (account_id == "") might not be necessary, handled in front end
+exports.createConnectedAccountAndTriggerRefreshUrl = functions.firestore
+  .document('stripe_supplier/{userId}')
+  .onCreate(async (snap, context) => {
+    try {
+      const firebaseUID = context.params.userId;
+      const stripeID = await admin.firestore()
+        .collection('stripe_supplier')
+        .doc(firebaseUID)
+        .get();
+      
+      const account_id = stripeID.data().account_id;
+      if (account_id == "") {
+        const userData = await admin.firestore()
+          .collection('users') // Replace with the actual collection path
+          .doc(firebaseUID)
+          .get();
+        const userEmail = userData.data().email;
+        const account = await stripe.accounts.create({
+          type: 'express',
+          country: 'US',
+          email: userEmail, // Set the email associated with the account
+        });
+        await snap.ref.set(account);
+
+         // Store the account information in Firestore
+        await admin.firestore()
+          .collection('stripe_supplier')
+          .doc(firebaseUID)
+          .set({
+           account_id: account.id,
+          }, { merge: true }); // Merge option to update the document
+        
+ // Create the account link
+ 
+          const accountLinks = await stripe.accountLinks.create({
+            type: 'account_onboarding',
+            account: account.id, // Use the Stripe account ID directly
+            refresh_url: 'https://us-central1-functions-849f0.cloudfunctions.net/refresh_url', // Update with the correct refresh_url
+            return_url: 'https://www.colonly.com', // Set the return_url
+          });
+          await admin.firestore()
+          .collection('stripe_supplier')
+          .doc(firebaseUID)
+          .set({
+            account_link: accountLinks.url
+          }, { merge: true }); // Merge option to
+        
+          return;
+        }
+        } catch (error) {
+      console.error('Error creating connected account:', error);
+    };
+  });
+
+/**
+ * Coppied from ROcket Rides Example
+ * Refreshes the onboarding link for a connected account.
+ */
+exports.triggerRefresh = functions.firestore
+  .document('stripe_supplier/{userId}')
+  .onUpdate(async (snapshot, context) => {
+    try {
+      const firebaseUID = context.params.userId;
+      const userData = await admin.firestore()
+        .collection('stripe_supplier')
+        .doc(firebaseUID)
+        .get();
+      
+      const account_link = userData.data().account_link;
+      if (account_link == "") {
+        const userData = await admin.firestore()
+          .collection('stripe_supplier') // Replace with the actual collection path
+          .doc(firebaseUID)
+          .get();
+        const stripeID = userData.data().account_id;
+       
+      
+ // Create the ONBOARDING link
+          const accountLinks = await stripe.accountLinks.create({
+            type: 'account_onboarding',
+            account: stripeID, // Use the Stripe account ID directly
+            refresh_url: 'https://us-central1-functions-849f0.cloudfunctions.net/refresh_url', // Update with the correct refresh_url
+            return_url: 'https://www.colonly.com', // Set the return_url
+          });
+          await admin.firestore()
+          .collection('stripe_supplier')
+          .doc(firebaseUID)
+          .set({
+            account_link: accountLinks.url
+          }, { merge: true }); // Merge option to
+          return;
+        }
+        } catch (error) {
+      console.error('Error creating connected account:', error);
+    };
+  });
+/**
+ * Refreshes the LOGIN link for a connected account.
+ * MAKE sure we have charges enabled and details submitted to start function
+ * 
+ * to get this to work, i had to manually create a login_linking field in the database
+ * once created. it will update the login_linking field with the link. so we need to create either a login_linking in the database manually or when a user creates one. in the front end. 
+ * it triggers when ONUPDATE. so when the user presses the login button. the front end code turns the URL into "" so then this function triggers because it updates.
+ */
+exports.loginLinkRefresh = functions.firestore
+  .document('stripe_supplier/{userId}')
+  .onUpdate(async (snapshot, context) => {
+    try {
+      const firebaseUID = context.params.userId;
+      const userData = await admin.firestore()
+        .collection('stripe_supplier')
+        .doc(firebaseUID)
+        .get();
+      
+      const login_link = userData.data().login_linking;
+      const account_id = userData.data().account_id;
+      console.log('CALLED✅ account id:', account_id);
+      console.log('CALLED✅ login link:', login_link);
+      if (login_link == "") {
+        // you dont have to recall user data, you already have. userdata.data. so just 
+        // const userData = await admin.firestore()
+        //   .collection('stripe_supplier') // Replace with the actual collection path
+        //   .doc(firebaseUID)
+        //   .get();
+        // const stripeID = userData.data().account_id;
+       
+      
+ // Create the ONBOARDING link
+          const loginLink = await stripe.accounts.createLoginLink(account_id
+         );
+          await admin.firestore()
+          .collection('stripe_supplier')
+          .doc(firebaseUID)
+          .set({
+            login_linking: loginLink.url
+          }, { merge: true }); // Merge option to
+          return;
+        }
+        } catch (error) {
+      console.error('Error creating connected account:', error);
+    };
+  });
   
   // NORMAL WEBHOOK ---------------- VvVvvvvvvvvvvvvvvvv
   /**
@@ -137,9 +285,6 @@ const updatePaymentRecord = async (id) => {
         throw error;
     }
 };
-
-
-
 
 
 exports.handleWebhookEvents = functions.https.onRequest(async (req, resp) => {
@@ -215,6 +360,10 @@ const updateAccountUpdate = async (connectAccountId) => {
 //    customerId,
 // });
  
+    
+     // charges enabled & details submitted means connect account created. can add to firebase, but maybe make it trigger something?
+        // we work the UI according to whether or not the account is created
+        // we can send the account link??
         console.log('✅ Account update record updated successfully details...:', customerId.details_submitted, 'and..charges:', customerId.charges_enabled);
     } catch (error) {
         console.error('❌ Error updating account update record:', error);
@@ -271,106 +420,6 @@ exports.connectWebhookEvents = functions.https.onRequest(async (req, resp) => {
 
 
 // CONNECT WEBHOOK ---------------- ^^^^^^^^^^^^^^^^^^
-/**
- * Create Stripe Connect account ( marketplace worker )
- */
-
-
-// copied from Rocket Rides Example
-//  where it says if (account_id == "") might not be necessary, handled in front end
-exports.createConnectedAccountAndTriggerRefreshUrl = functions.firestore
-  .document('stripe_supplier/{userId}')
-  .onCreate(async (snap, context) => {
-    try {
-      const firebaseUID = context.params.userId;
-      const stripeID = await admin.firestore()
-        .collection('stripe_supplier')
-        .doc(firebaseUID)
-        .get();
-      
-      const account_id = stripeID.data().account_id;
-      if (account_id == "") {
-        const userData = await admin.firestore()
-          .collection('users') // Replace with the actual collection path
-          .doc(firebaseUID)
-          .get();
-        const userEmail = userData.data().email;
-        const account = await stripe.accounts.create({
-          type: 'express',
-          country: 'US',
-          email: userEmail, // Set the email associated with the account
-        });
-        await snap.ref.set(account);
-
-         // Store the account information in Firestore
-        await admin.firestore()
-          .collection('stripe_supplier')
-          .doc(firebaseUID)
-          .set({
-           account_id: account.id,
-          }, { merge: true }); // Merge option to update the document
-        
- // Create the account link
- 
-          const accountLinks = await stripe.accountLinks.create({
-            type: 'account_onboarding',
-            account: account.id, // Use the Stripe account ID directly
-            refresh_url: 'https://us-central1-functions-849f0.cloudfunctions.net/refresh_url', // Update with the correct refresh_url
-            return_url: 'https://www.colonly.com', // Set the return_url
-          });
-          await admin.firestore()
-          .collection('stripe_supplier')
-          .doc(firebaseUID)
-          .set({
-            account_link: accountLinks.url
-          }, { merge: true }); // Merge option to
-        
-          return;
-        }
-        } catch (error) {
-      console.error('Error creating connected account:', error);
-    };
-  });
-// copied from Rocket Rides Example
-exports.triggerRefresh = functions.firestore
-  .document('stripe_supplier/{userId}')
-  .onUpdate(async (snapshot, context) => {
-    try {
-      const firebaseUID = context.params.userId;
-      const userData = await admin.firestore()
-        .collection('stripe_supplier')
-        .doc(firebaseUID)
-        .get();
-      
-      const account_link = userData.data().account_link;
-      if (account_link == "") {
-        const userData = await admin.firestore()
-          .collection('stripe_supplier') // Replace with the actual collection path
-          .doc(firebaseUID)
-          .get();
-        const stripeID = userData.data().account_id;
-       
-      
- // Create the account link
-          const accountLinks = await stripe.accountLinks.create({
-            type: 'account_onboarding',
-            account: stripeID, // Use the Stripe account ID directly
-            refresh_url: 'https://us-central1-functions-849f0.cloudfunctions.net/refresh_url', // Update with the correct refresh_url
-            return_url: 'https://www.colonly.com', // Set the return_url
-          });
-          await admin.firestore()
-          .collection('stripe_supplier')
-          .doc(firebaseUID)
-          .set({
-            account_link: accountLinks.url
-          }, { merge: true }); // Merge option to
-          return;
-        }
-        } catch (error) {
-      console.error('Error creating connected account:', error);
-    };
-    });
-       
 
 /**
  * When a user deletes their account, clean up after them.

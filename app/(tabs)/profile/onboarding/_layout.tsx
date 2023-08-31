@@ -43,6 +43,15 @@ const OnboardingStack = () => {
           headerLeft: headerLeft,
         }}
       />
+      <Stack.Screen
+        name="stripeLogin"
+        options={{
+          headerTitle: "Create Account",
+          headerShown: true,
+          presentation: "modal",
+          headerLeft: headerLeft,
+        }}
+      />
     </Stack>
   );
 };
