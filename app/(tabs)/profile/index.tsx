@@ -7,11 +7,11 @@ const profile = () => {
   const user = useAuth();
   return (
     <View style={{ flex: 1 }}>
-      <View>
-        <Text style={{ alignSelf: "center", padding: 6 }}>
+      <View style={{ backgroundColor: "black", padding: 12 }}>
+        <Text style={{ alignSelf: "center", padding: 6, color: "white" }}>
           {user.user?.email}
         </Text>
-        <Text style={{ alignSelf: "center", padding: 6 }}>
+        <Text style={{ alignSelf: "center", padding: 6, color: "white" }}>
           {user.user?.uid}
         </Text>
       </View>

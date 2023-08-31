@@ -3,11 +3,13 @@
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 
+
 admin.initializeApp();
 
 const stripe = require('stripe')(functions.config().stripe.secret, {
   apiVersion: '2023-08-16',
 });
+
 
 /**
  * When a user is created, create a Stripe customer object for them.
@@ -97,31 +99,33 @@ exports.createStripePayment = functions.firestore
     }
   });
 
-/**
- * Helper function to update a payment record in Cloud Firestore.
- */
-// --------------------------------------------------vvvvvvvvvvvvvvvvvvvvvvvv
+  
+  
+  // NORMAL WEBHOOK ---------------- VvVvvvvvvvvvvvvvvvv
+  /**
+   * Helper function to update a payment record in Cloud Firestore.
+   */
 
 const updatePaymentRecord = async (id) => {
     try {
-        // Retrieve the payment object to make sure we have an up-to-date status.
-        const payment = await stripe.paymentIntents.retrieve(id);
-        const customerId = payment.customer;
-        // Get customer's doc in Firestore.
-        const customersSnap = await admin
-            .firestore()
-            .collection('stripe_customers')
-            .where('customer_id', '==', customerId)
-            .get();
+      const payment = await stripe.paymentIntents.retrieve(id);
+      const customerId = payment.customer;
+      console.log('Step 1: Retrieving payment object', customerId, 'and', payment.id);
+      const customersSnap = await admin
+      .firestore()
+      .collection('stripe_customers')
+      .where('customer_id', '==', customerId)
+      .get();
+      console.log('Step 2: Retrieving customer doc in Firestore');
         if (customersSnap.size !== 1) {
             console.error('❌ User not found for payment:', id);
             throw new Error('User not found!');
         }
-        // Update record in Firestore
         const paymentsSnap = await customersSnap.docs[0].ref
-            .collection('payments')
-            .where('id', '==', payment.id)
-            .get();
+        .collection('payments')
+        .where('id', '==', payment.id)
+        .get();
+        console.log('Step 3: Updating record in Firestore', payment.id);
         if (paymentsSnap.size !== 1) {
             console.error('❌ Payment not found:', payment.id);
             throw new Error('Payment not found!');
@@ -134,8 +138,13 @@ const updatePaymentRecord = async (id) => {
     }
 };
 
+
+
+
+
 exports.handleWebhookEvents = functions.https.onRequest(async (req, resp) => {
     const relevantEvents = new Set([
+        'account.updated',
         'payment_intent.succeeded',
         'payment_intent.processing',
         'payment_intent.payment_failed',
@@ -164,7 +173,8 @@ exports.handleWebhookEvents = functions.https.onRequest(async (req, resp) => {
                 case 'payment_intent.canceled':
                     const id = event.data.object.id;
                     await updatePaymentRecord(id);
-                    break;
+                break;
+                
                 default:
                     throw new Error('Unhandled relevant event!');
             }
@@ -178,9 +188,89 @@ exports.handleWebhookEvents = functions.https.onRequest(async (req, resp) => {
     resp.json({ received: true });
     console.log('✅ Success');
 });
+// NORMAL WEBHOOK ---------------- ^^^^^^^^^^^^^^^^^^
+// CONNECT WEBHOOK ---------------- VvVvvvvvvvvvvvvvvvv
+const updateAccountUpdate = async (connectAccountId) => {
+  try {
+   
+    
+    console.log('Step 1: Retrieving account object')
+        // Assuming the 'account' property holds the customer ID
+      // using the get or (retrieve)from stripe 
 
-// --------------------------------------------------^^^^^^^^^^^^^^^^^^^^^^^^^^
+      const accountId = connectAccountId
+      const customerId = await stripe.accounts.retrieve(accountId);
+      // in the response, we get. account
+      
+             // customer snap may not be working because of format
+//        const customersSnap = await admin
+//             .firestore()
+//             .collection('stripe_supplier')
+//             .doc(firebaseUID)
+//             .get(); 
+      
+      
+//      const supplierDocRef = customersSnap.ref;
+// await supplierDocRef.update({
+//    customerId,
+// });
+ 
+        console.log('✅ Account update record updated successfully details...:', customerId.details_submitted, 'and..charges:', customerId.charges_enabled);
+    } catch (error) {
+        console.error('❌ Error updating account update record:', error);
+        throw error;
+    }
+};
 
+
+
+exports.connectWebhookEvents = functions.https.onRequest(async (req, resp) => {
+// const firebaseUID = req.query.userId; 
+      //  console.log('✅ UID HERE N:', firebaseUID);
+  const endpointSecret = "whsec_MF3XkzhEwQ0sthNXFTvRjHLKjSK7PH6p"
+    const relevantEvents = new Set([
+        'account.updated', 
+    ]);
+  let event;
+  
+
+    try {
+        event = stripe.webhooks.constructEvent(
+            req.rawBody,
+          req.headers['stripe-signature'],
+            endpointSecret,
+        
+            // functions.config().stripe.webhooksecret
+        );
+    } catch (error) {
+        console.error('❗️ Connect Webhook Error: Invalid Secret');
+        resp.status(401).send('Connect Webhook Error: Invalid Secret');
+        return;
+    }
+    if (relevantEvents.has(event.type)) {
+        try {
+            switch (event.type) {
+                 case 'account.updated':
+                const connectAccountId = event.data.object.id;
+      // Accessing the account ID from the event data
+                    await updateAccountUpdate(connectAccountId);
+                break;
+                default:
+                    throw new Error('Unhandled relevant event!');
+            }
+            console.log('✅ Connect Event processed:', event.type);
+        } catch (error) {
+            console.error(`❗️Connect Webhook error for [${event.data.object.id}]`, error.message);
+            resp.status(400).send('Connnect Webhook handler failed. View Function logs.');
+            return;
+        }
+    }
+    resp.json({ received: true });
+    console.log('✅ Success from Connect webhook');
+});
+
+
+// CONNECT WEBHOOK ---------------- ^^^^^^^^^^^^^^^^^^
 /**
  * Create Stripe Connect account ( marketplace worker )
  */
@@ -190,7 +280,7 @@ exports.handleWebhookEvents = functions.https.onRequest(async (req, resp) => {
 //  where it says if (account_id == "") might not be necessary, handled in front end
 exports.createConnectedAccountAndTriggerRefreshUrl = functions.firestore
   .document('stripe_supplier/{userId}')
-  .onCreate(async (snapshot, context) => {
+  .onCreate(async (snap, context) => {
     try {
       const firebaseUID = context.params.userId;
       const stripeID = await admin.firestore()
@@ -210,15 +300,18 @@ exports.createConnectedAccountAndTriggerRefreshUrl = functions.firestore
           country: 'US',
           email: userEmail, // Set the email associated with the account
         });
+        await snap.ref.set(account);
 
          // Store the account information in Firestore
         await admin.firestore()
           .collection('stripe_supplier')
           .doc(firebaseUID)
           .set({
-            account_id: account.id,
+           account_id: account.id,
           }, { merge: true }); // Merge option to update the document
+        
  // Create the account link
+ 
           const accountLinks = await stripe.accountLinks.create({
             type: 'account_onboarding',
             account: account.id, // Use the Stripe account ID directly
@@ -231,6 +324,7 @@ exports.createConnectedAccountAndTriggerRefreshUrl = functions.firestore
           .set({
             account_link: accountLinks.url
           }, { merge: true }); // Merge option to
+        
           return;
         }
         } catch (error) {
