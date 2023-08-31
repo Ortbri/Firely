@@ -84,6 +84,11 @@ exports.createStripePayment = functions.firestore
           amount,
           currency,
           customer,
+          application_fee_amount: 123,
+          transfer_data: {
+          destination: 'acct_1NlBx1RCK7PdIuwU',
+          },
+          
         },
         { idempotencyKey }
       );
