@@ -11,12 +11,12 @@ import AsyncStorage  from "@react-native-async-storage/async-storage";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAM-IhxKKYC4WCj-2zL0SASp3kdrRrvWlQ",
-  authDomain: "firely-eceb1.firebaseapp.com",
-  projectId: "firely-eceb1",
-  storageBucket: "firely-eceb1.appspot.com",
-  messagingSenderId: "517684313681",
-  appId: "1:517684313681:web:8a89f991e338f0ef6b4270"
+  apiKey: "AIzaSyBChBSf1wLzcHGgBSlBTl72fx0LMzaTsTA",
+  authDomain: "functions-849f0.firebaseapp.com",
+  projectId: "functions-849f0",
+  storageBucket: "functions-849f0.appspot.com",
+  messagingSenderId: "742397313746",
+  appId: "1:742397313746:web:aa4a78ac29bd578acea30b"
 };
 
 // Initialize Firebase

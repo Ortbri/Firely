@@ -14,7 +14,7 @@ import { FIREBASE_AUTH } from "../../config/FirebaseConfig";
 import Spinner from "react-native-loading-spinner-overlay";
 
 const Login = ({}) => {
-  const [email, setEmail] = useState("simon@galaxies.dev");
+  const [email, setEmail] = useState("brian.ort02@gmail.com");
   const [password, setPassword] = useState("123456");
   const [loading, setLoading] = useState(false);
 

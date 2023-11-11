@@ -41,13 +41,26 @@ const ProfileStack = () => {
       <Stack.Screen
         name="checkout"
         options={{
-          headerTitle: "Checkout",
+          headerTitle: "Wallet",
         }}
       />
       <Stack.Screen
         name="marketplace"
         options={{
           headerTitle: "marketplace",
+        }}
+      />
+      <Stack.Screen
+        name="ui"
+        options={{
+          headerTitle: "marketplace",
+        }}
+      />
+      <Stack.Screen
+        name="onboarding"
+        options={{
+          headerTitle: "onboarding",
+          // presentation: "modal",
         }}
       />
     </Stack>
